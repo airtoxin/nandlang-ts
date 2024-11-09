@@ -2,10 +2,11 @@ import { expect, test } from "vitest";
 import {
   bitinModule,
   bitoutModule,
-  getSecretInPort,
-  getSecretOutPort,
   nandModule,
-} from "./objects";
+  run,
+  secretBitinPort,
+  secretBitoutPort,
+} from "./module";
 
 test("nandModule", () => {
   const nand = nandModule.createVariable("nand");
@@ -32,21 +33,33 @@ test("bitinModule", () => {
 
   expect(bitin.outPorts?.get("o0")?.get()).toBe(false);
 
-  getSecretInPort(bitin)?.set(true);
+  bitin[secretBitinPort]?.set(true);
   expect(bitin.outPorts?.get("o0")?.get()).toBe(true);
 
-  getSecretInPort(bitin)?.set(false);
+  bitin[secretBitinPort]?.set(false);
   expect(bitin.outPorts?.get("o0")?.get()).toBe(false);
 });
 
 test("bitoutModule", () => {
   const bitout = bitoutModule.createVariable("out");
 
-  expect(getSecretOutPort(bitout)?.get()).toBe(false);
+  expect(bitout[secretBitoutPort]?.get()).toBe(false);
 
   bitout.inPorts?.get("i0")?.set(true);
-  expect(getSecretOutPort(bitout)?.get()).toBe(true);
+  expect(bitout[secretBitoutPort]?.get()).toBe(true);
 
   bitout.inPorts?.get("i0")?.set(false);
-  expect(getSecretOutPort(bitout)?.get()).toBe(false);
+  expect(bitout[secretBitoutPort]?.get()).toBe(false);
+});
+
+test("run", () => {
+  expect(
+    run(
+      nandModule,
+      new Map([
+        ["i0", true],
+        ["i1", true],
+      ]),
+    ),
+  ).toEqual(new Map([["o0", false]]));
 });

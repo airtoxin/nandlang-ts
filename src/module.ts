@@ -3,18 +3,19 @@ import { nand } from "./gate";
 
 export type Module = {
   name: string;
+  modules?: Module[];
   createVariable: (name: string) => Variable;
 };
 
-const bitinIn = Symbol();
-const bitoutOut = Symbol();
+export const secretBitinPort = Symbol();
+export const secretBitoutPort = Symbol();
 
 export type Variable = {
   name: string;
   inPorts?: Map<string, Reactive<boolean>>;
   outPorts?: Map<string, Reactive<boolean>>;
-  [bitinIn]?: Reactive<boolean>;
-  [bitoutOut]?: Reactive<boolean>;
+  [secretBitinPort]?: Reactive<boolean>;
+  [secretBitoutPort]?: Reactive<boolean>;
 };
 
 export const nandModule: Module = {
@@ -41,15 +42,11 @@ export const bitinModule: Module = {
     const port = reactive(false);
     return {
       name,
-      [bitinIn]: port,
+      [secretBitinPort]: port,
       outPorts: new Map([["o0", port]]),
     };
   },
 };
-
-export const getSecretInPort = (
-  bitinVar: Variable,
-): Reactive<boolean> | undefined => bitinVar[bitinIn];
 
 export const bitoutModule: Module = {
   name: "BITOUT",
@@ -58,11 +55,23 @@ export const bitoutModule: Module = {
     return {
       name,
       inPorts: new Map([["i0", port]]),
-      [bitoutOut]: port,
+      [secretBitoutPort]: port,
     };
   },
 };
 
-export const getSecretOutPort = (
-  bitoutVar: Variable,
-): Reactive<boolean> | undefined => bitoutVar[bitoutOut];
+export const run = (
+  module: Module,
+  portSignals: Map<string, boolean>,
+): Map<string, boolean> => {
+  const variable = module.createVariable("_");
+  for (const [portName, signal] of portSignals.entries()) {
+    variable.inPorts?.get(portName)?.set(signal);
+  }
+
+  return new Map(
+    Array.from(variable.outPorts?.entries() ?? []).map(
+      ([portName, reactive]) => [portName, reactive.get()],
+    ),
+  );
+};
