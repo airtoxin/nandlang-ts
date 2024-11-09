@@ -1,123 +1,61 @@
 import { lex } from "./lexer";
-import { Module, Variable } from "./objects";
+import {
+  bitinModule,
+  bitoutModule,
+  Module,
+  nandModule,
+  secretBitinPort,
+  secretBitoutPort,
+  Variable,
+} from "./module";
+import { Reactive } from "@reactively/core";
 
 export class Vm {
-  private modules: Module[];
-
-  constructor() {
-    const globalModule: Module = {
-      name: "Global",
-      modules: [
-        {
-          name: "NAND",
-          modules: [],
-          vars: [
-            { name: "i0", moduleName: "BITIN" },
-            { name: "i1", moduleName: "BITIN" },
-            { name: "o0", moduleName: "BITOUT" },
-          ],
-          wires: [],
-        },
-        {
-          name: "BITIN",
-          modules: [],
-          vars: [{ name: "o0", moduleName: "BITOUT" }],
-          wires: [],
-        },
-        {
-          name: "BITOUT",
-          modules: [],
-          vars: [{ name: "i0", moduleName: "BITIN" }],
-          wires: [],
-        },
-      ],
-      vars: [],
-      wires: [],
-    };
-    this.modules = [globalModule];
-  }
-
-  public parse(program: string) {
+  public compile(program: string): Variable {
     const tokens = lex(program);
+
+    const inPorts = new Map<string, Reactive<boolean>>();
+    const outPorts = new Map<string, Reactive<boolean>>();
+    const modules = new Map<string, Module>([
+      ["NAND", nandModule],
+      ["BITIN", bitinModule],
+      ["BITOUT", bitoutModule],
+    ]);
+    const variables = new Map<string, Variable>();
+
     for (const token of tokens) {
-      const currentModule = this.modules.at(-1)!; // 常にトップレベルのGlobalモジュールがあるので!キャスト可能
       if (token.type === "variable") {
-        const mod = this.findModule(token.moduleName);
+        const mod = modules.get(token.moduleName);
         if (mod == null)
           throw new Error(`Unknown module name: ${token.moduleName}`);
-        currentModule.vars.push({
-          name: token.name,
-          moduleName: mod.name,
-        });
+        const variable = mod.createVariable(token.name);
+        variables.set(token.name, variable);
+        if (mod.name === "BITIN") {
+          const port = variable[secretBitinPort];
+          if (port == null) throw new Error(`Unexpected BITIN port`);
+          inPorts.set(variable.name, port);
+        } else if (mod.name === "BITOUT") {
+          const port = variable[secretBitoutPort];
+          if (port == null) throw new Error(`Unexpected BITOUT port`);
+          outPorts.set(variable.name, port);
+        }
       } else if (token.type === "wire") {
-        const srcVar = this.findVar(token.srcVariableName);
-        if (srcVar == null)
-          throw new Error(`Unknown variable name: ${token.srcVariableName}`);
-        const srcMod = this.findModule(srcVar.moduleName);
-        if (srcMod == null)
-          throw new Error(`Unknown variable module: ${srcVar.moduleName}`);
-        const srcPort = srcMod.vars.find(
-          (v) => v.moduleName === "BITOUT" && v.name === token.srcVariablePort,
-        );
-        if (srcPort == null)
-          throw new Error(`Unknown src port: ${token.srcVariablePort}`);
-        const destVar = this.findVar(token.destVariableName);
-        if (destVar == null)
-          throw new Error(`Unknown variable name: ${token.destVariableName}`);
-        const destMod = this.findModule(destVar.moduleName);
-        if (destMod == null)
-          throw new Error(`Unknown variable module: ${destVar.moduleName}`);
-        const destPort = destMod.vars.find(
-          (v) => v.moduleName === "BITIN" && v.name === token.destVariablePort,
-        );
-        if (destPort == null)
-          throw new Error(`Unknown dest port: ${token.destVariablePort}`);
-        currentModule.wires.push({
-          srcVarName: srcVar.name,
-          srcPortName: srcPort.name,
-          destVarName: destVar.name,
-          destPortName: destPort.name,
-        });
-      } else if (token.type === "moduleStart") {
-        const newModule: Module = {
-          name: token.name,
-          modules: [],
-          vars: [],
-          wires: [],
-        };
-        this.modules.push(newModule);
-      } else if (token.type === "moduleEnd") {
-        const newModule = this.modules.pop()!;
-        this.modules.at(-1)!.modules.push(newModule);
+        const srcPort = variables
+          .get(token.srcVariableName)
+          ?.outPorts?.get(token.srcVariablePort);
+        const destPort = variables
+          .get(token.destVariableName)
+          ?.inPorts?.get(token.destVariablePort);
+        if (srcPort == null || destPort == null)
+          throw new Error(`Unknown wiring port. ${JSON.stringify(token)}`);
+        destPort.set(() => srcPort.get());
       }
     }
-  }
 
-  public run(inputs: BitIo): BitIo {
-    const globalModule = this.modules.pop();
-    if (globalModule?.name !== "global")
-      throw new Error(`Unexpected global module`);
-  }
-
-  private findModule(moduleName: string): Module | null {
-    const flatten = (module: Module): Module[] => {
-      return [...module.modules.flatMap((m) => flatten(m)), module];
+    return {
+      name: "GLOBAL",
+      inPorts,
+      outPorts,
     };
-    const flatModules = this.modules.toReversed().flatMap(flatten);
-
-    return flatModules.find((m) => m.name === moduleName) ?? null;
-  }
-
-  private findVar(varName: string): Variable | null {
-    const flatten = (module: Module): Variable[] => {
-      return [...module.modules.flatMap((m) => flatten(m)), ...module.vars];
-    };
-    const flatVars = this.modules.toReversed().flatMap(flatten);
-
-    return flatVars.find((v) => v.name === varName) ?? null;
   }
 }
-
-export type BitIo = {
-  [variableName: string]: boolean;
-};

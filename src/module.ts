@@ -61,10 +61,9 @@ export const bitoutModule: Module = {
 };
 
 export const run = (
-  module: Module,
+  variable: Variable,
   portSignals: Map<string, boolean>,
 ): Map<string, boolean> => {
-  const variable = module.createVariable("_");
   for (const [portName, signal] of portSignals.entries()) {
     variable.inPorts?.get(portName)?.set(signal);
   }

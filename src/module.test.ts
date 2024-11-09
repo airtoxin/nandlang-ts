@@ -55,7 +55,7 @@ test("bitoutModule", () => {
 test("run", () => {
   expect(
     run(
-      nandModule,
+      nandModule.createVariable("_"),
       new Map([
         ["i0", true],
         ["i1", true],
