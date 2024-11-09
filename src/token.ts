@@ -7,15 +7,15 @@ export type Token =
 export type VariableToken = {
   type: "variable";
   name: string;
-  module_name: string;
+  moduleName: string;
 };
 
 export type WireToken = {
   type: "wire";
-  src_variable_name: string;
-  src_variable_port: string;
-  dest_variable_name: string;
-  dest_variable_port: string;
+  srcVariableName: string;
+  srcVariablePort: string;
+  destVariableName: string;
+  destVariablePort: string;
 };
 
 export type ModuleStartToken = {

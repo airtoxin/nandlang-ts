@@ -19,7 +19,7 @@ export const lex = (program: string): Token[] => {
       const token: VariableToken = {
         type: "variable",
         name: words[1],
-        module_name: words[2],
+        moduleName: words[2],
       };
       tokens.push(token);
     } else if (
@@ -33,10 +33,10 @@ export const lex = (program: string): Token[] => {
     ) {
       const token: WireToken = {
         type: "wire",
-        src_variable_name: words[1],
-        src_variable_port: words[2],
-        dest_variable_name: words[4],
-        dest_variable_port: words[5],
+        srcVariableName: words[1],
+        srcVariablePort: words[2],
+        destVariableName: words[4],
+        destVariablePort: words[5],
       };
       tokens.push(token);
     } else if (
