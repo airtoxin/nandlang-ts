@@ -9,10 +9,10 @@ describe("lex", () => {
     expect(lex(program)).toMatchInlineSnapshot(`
       [
         {
-          "dest_variable_name": "x",
-          "dest_variable_port": "in",
-          "src_variable_name": "a",
-          "src_variable_port": "out",
+          "destVariableName": "x",
+          "destVariablePort": "in",
+          "srcVariableName": "a",
+          "srcVariablePort": "out",
           "type": "wire",
         },
       ]
@@ -26,7 +26,7 @@ describe("lex", () => {
     expect(lex(program)).toMatchInlineSnapshot(`
       [
         {
-          "module_name": "NAND",
+          "moduleName": "NAND",
           "name": "x",
           "type": "variable",
         },
@@ -47,7 +47,7 @@ describe("lex", () => {
           "type": "moduleStart",
         },
         {
-          "module_name": "BITIN",
+          "moduleName": "BITIN",
           "name": "in",
           "type": "variable",
         },
