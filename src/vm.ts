@@ -93,7 +93,11 @@ export class Vm {
     }
   }
 
-  public run(inputs: BitIo): BitIo {}
+  public run(inputs: BitIo): BitIo {
+    const globalModule = this.modules.pop();
+    if (globalModule?.name !== "global")
+      throw new Error(`Unexpected global module`);
+  }
 
   private findModule(moduleName: string): Module | null {
     const flatten = (module: Module): Module[] => {
