@@ -2,7 +2,7 @@ export type Token =
   | VariableToken
   | WireToken
   | ModuleStartToken
-  | ModuleEndToken
+  | ModuleEndToken;
 
 export type VariableToken = {
   type: "variable";

@@ -135,7 +135,7 @@ wire internal ports to the module's external ports.
 
 **Example Usage**
 
-*Indentation is used for visual clarity only.*
+_Indentation is used for visual clarity only._
 
 ```
 MOD START NOT

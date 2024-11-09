@@ -1,5 +1,5 @@
-import {describe, expect, test} from "vitest";
-import {lex} from "./lexer";
+import { describe, expect, test } from "vitest";
+import { lex } from "./lexer";
 
 describe("lex", () => {
   test("wiring", () => {
