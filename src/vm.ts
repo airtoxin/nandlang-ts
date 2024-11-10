@@ -23,17 +23,18 @@ export class Vm {
       ["BITIN", bitinModule],
       ["BITOUT", bitoutModule],
     ]);
-    return this._compile("GLOBAL", globalModules);
+    return this._compile("GLOBAL", globalModules, new Map());
   }
 
   private _compile(
     moduleName: string,
     parentModules: Map<string, Module>,
+    parentVariables: Map<string, Variable>,
   ): Module {
     const inPorts = new Map<string, Reactive<boolean>>();
     const outPorts = new Map<string, Reactive<boolean>>();
     const modules = new Map<string, Module>();
-    const variables = new Map<string, Variable>();
+    const variables = new Map<string, Variable>(parentVariables);
 
     while (this.tokens.length > 0) {
       const token = this.tokens.shift();
@@ -71,6 +72,7 @@ export class Vm {
           this._compile(
             token.name,
             new Map([...parentModules.entries(), ...modules.entries()]),
+            variables,
           ),
         );
       } else if (token.type === "moduleEnd") {
