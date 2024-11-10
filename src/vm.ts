@@ -33,13 +33,12 @@ export class Vm {
   ): Module {
     const inPorts = new Map<string, Reactive<boolean>>();
     const outPorts = new Map<string, Reactive<boolean>>();
-    const modules = new Map<string, Module>();
+    const modules = new Map<string, Module>(parentModules);
     const variables = new Map<string, Variable>(parentVariables);
 
     while (this.tokens.length > 0) {
       const token = this.tokens.shift();
       if (token == null) break;
-
       if (token.type === "variable") {
         const mod =
           modules.get(token.moduleName) ?? parentModules.get(token.moduleName);
@@ -76,7 +75,7 @@ export class Vm {
           this._compile(
             token.name,
             new Map([...parentModules.entries(), ...modules.entries()]),
-            variables,
+            new Map([...parentVariables.entries(), ...variables.entries()]),
           ),
         );
       } else if (token.type === "moduleEnd") {
@@ -84,6 +83,7 @@ export class Vm {
           name: moduleName,
           modules: [],
           createVariable: (name) => {
+            // FIXME: ここで変数を作らないとモジュールの変数が同じ内部変数を共有してしまう
             return {
               name,
               inPorts,
