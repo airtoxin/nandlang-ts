@@ -89,13 +89,13 @@ FROM [src_var] [src_port] TO [dest_var] [dest_port]
 
 `[src_var]`: Name of the source variable.
 
-`[src_port]`: Output port name of the source variable.
+`[src_port]`: Output port name of the source variable. If the source variable has only one output port, the port name can be omitted by using `_`.
 
 `TO`: Reserved keyword to define the destination of a wire.
 
 `[dest_var]`: Name of the destination variable.
 
-`[dest_port]`: Input port name of the destination variable.
+`[dest_port]`: Input port name of the destination variable. If the destination variable has only one input port, the port name can be omitted by using `_`.
 
 **Example Usage**
 

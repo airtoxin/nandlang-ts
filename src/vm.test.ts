@@ -7,7 +7,7 @@ describe("vm", () => {
     const program = `\
       VAR in BITIN
       VAR out BITOUT
-      FROM in o0 TO out i0
+      FROM in _ TO out _
     `;
     const vm = new Vm(program);
     const globalModule = vm.compile();
@@ -34,9 +34,9 @@ describe("vm", () => {
       
       VAR nand NAND
       
-      FROM in0 o0 TO nand i0
-      FROM in1 o0 TO nand i1
-      FROM nand o0 TO out i0
+      FROM in0 _ TO nand i0
+      FROM in1 _ TO nand i1
+      FROM nand _ TO out _
     `;
     const vm = new Vm(program);
     const globalModule = vm.compile();
@@ -81,15 +81,15 @@ describe("vm", () => {
         VAR out BITOUT
         VAR nand NAND
         
-        FROM in o0 TO nand i0
-        FROM in o0 TO nand i1
-        FROM nand o0 TO out i0
+        FROM in _ TO nand i0
+        FROM in _ TO nand i1
+        FROM nand _ TO out _
       MOD END
       
       VAR not NOT
       
-      FROM in o0 TO not in
-      FROM not out TO out i0
+      FROM in _ TO not _
+      FROM not _ TO out _
     `;
     const vm = new Vm(program);
     const globalModule = vm.compile();

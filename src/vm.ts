@@ -57,12 +57,16 @@ export class Vm {
           outPorts.set(variable.name, port);
         }
       } else if (token.type === "wire") {
-        const srcPort = variables
-          .get(token.srcVariableName)
-          ?.outPorts?.get(token.srcVariablePort);
-        const destPort = variables
-          .get(token.destVariableName)
-          ?.inPorts?.get(token.destVariablePort);
+        const srcOutPorts = variables.get(token.srcVariableName)?.outPorts;
+        const srcPort =
+          token.srcVariablePort === "_"
+            ? srcOutPorts?.values().next().value
+            : srcOutPorts?.get(token.srcVariablePort);
+        const destInPorts = variables.get(token.destVariableName)?.inPorts;
+        const destPort =
+          token.destVariablePort === "_"
+            ? destInPorts?.values().next().value
+            : destInPorts?.get(token.destVariablePort);
         if (srcPort == null || destPort == null)
           throw new Error(`Unknown wiring port. ${JSON.stringify(token)}`);
         destPort.set(() => srcPort.get());
