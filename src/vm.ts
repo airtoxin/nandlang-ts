@@ -11,57 +11,63 @@ import {
 import { Reactive } from "@reactively/core";
 import { Token } from "./token";
 
+type Scope = {
+  inPorts: Map<string, Reactive<boolean>>;
+  outPorts: Map<string, Reactive<boolean>>;
+  modules: Map<string, Module>;
+  variables: Map<string, Variable>;
+};
+
 export class Vm {
   private tokens: Token[];
+  private scopes: Scope[];
   constructor(private program: string) {
     this.tokens = lex(this.program);
+    this.scopes = [
+      {
+        inPorts: new Map(),
+        outPorts: new Map(),
+        modules: new Map<string, Module>([
+          ["NAND", nandModule],
+          ["BITIN", bitinModule],
+          ["BITOUT", bitoutModule],
+        ]),
+        variables: new Map(),
+      },
+    ];
   }
 
   public compile(): Module {
-    const globalModules = new Map<string, Module>([
-      ["NAND", nandModule],
-      ["BITIN", bitinModule],
-      ["BITOUT", bitoutModule],
-    ]);
-    return this._compile("GLOBAL", globalModules, new Map());
+    return this._compile("GLOBAL");
   }
 
-  private _compile(
-    moduleName: string,
-    parentModules: Map<string, Module>,
-    parentVariables: Map<string, Variable>,
-  ): Module {
-    const inPorts = new Map<string, Reactive<boolean>>();
-    const outPorts = new Map<string, Reactive<boolean>>();
-    const modules = new Map<string, Module>(parentModules);
-    const variables = new Map<string, Variable>(parentVariables);
-
+  private _compile(moduleName: string): Module {
+    const currentScope = this.scopes.at(-1)!; // scopesはNonEmptyListなのでキャスト可能
     while (this.tokens.length > 0) {
       const token = this.tokens.shift();
       if (token == null) break;
       if (token.type === "variable") {
-        const mod =
-          modules.get(token.moduleName) ?? parentModules.get(token.moduleName);
+        const mod = this.findModule(token.moduleName);
         if (mod == null)
           throw new Error(`Unknown module name: ${token.moduleName}`);
         const variable = mod.createVariable(token.name);
-        variables.set(token.name, variable);
+        currentScope.variables.set(token.name, variable);
         if (mod.name === "BITIN") {
           const port = variable[secretBitinPort];
           if (port == null) throw new Error(`Unexpected BITIN port`);
-          inPorts.set(variable.name, port);
+          currentScope.inPorts.set(variable.name, port);
         } else if (mod.name === "BITOUT") {
           const port = variable[secretBitoutPort];
           if (port == null) throw new Error(`Unexpected BITOUT port`);
-          outPorts.set(variable.name, port);
+          currentScope.outPorts.set(variable.name, port);
         }
       } else if (token.type === "wire") {
-        const srcOutPorts = variables.get(token.srcVariableName)?.outPorts;
+        const srcOutPorts = this.findVariable(token.srcVariableName)?.outPorts;
         const srcPort =
           token.srcVariablePort === "_"
             ? srcOutPorts?.values().next().value
             : srcOutPorts?.get(token.srcVariablePort);
-        const destInPorts = variables.get(token.destVariableName)?.inPorts;
+        const destInPorts = this.findVariable(token.destVariableName)?.inPorts;
         const destPort =
           token.destVariablePort === "_"
             ? destInPorts?.values().next().value
@@ -70,40 +76,56 @@ export class Vm {
           throw new Error(`Unknown wiring port. ${JSON.stringify(token)}`);
         destPort.set(() => srcPort.get());
       } else if (token.type === "moduleStart") {
-        modules.set(
-          token.name,
-          this._compile(
-            token.name,
-            new Map([...parentModules.entries(), ...modules.entries()]),
-            new Map([...parentVariables.entries(), ...variables.entries()]),
-          ),
-        );
+        this.scopes.push({
+          inPorts: new Map(),
+          outPorts: new Map(),
+          modules: new Map(),
+          variables: new Map(),
+        });
       } else if (token.type === "moduleEnd") {
+        const scope = this.scopes.pop();
+        if (scope == null) throw new Error(`Unexpected scope stack: undefined`);
         return {
           name: moduleName,
           modules: [],
           createVariable: (name) => {
-            // FIXME: ここで変数を作らないとモジュールの変数が同じ内部変数を共有してしまう
+            console.log("@scope", scope);
             return {
               name,
-              inPorts,
-              outPorts,
+              inPorts: scope.inPorts,
+              outPorts: scope.outPorts,
             };
           },
         };
       }
     }
 
+    const scope = this.scopes.pop();
+    if (scope == null) throw new Error(`Unexpected scope stack: undefined`);
     return {
       name: moduleName,
       modules: [],
       createVariable: (name) => {
         return {
           name,
-          inPorts,
-          outPorts,
+          inPorts: scope.inPorts,
+          outPorts: scope.outPorts,
         };
       },
     };
+  }
+
+  private findModule(moduleName: string): Module | undefined {
+    return this.scopes
+      .toReversed()
+      .flatMap((scope) => Array.from(scope.modules.entries()))
+      .find((entry) => entry?.[0] === moduleName)?.[1];
+  }
+
+  private findVariable(variableName: string): Variable | undefined {
+    return this.scopes
+      .toReversed()
+      .flatMap((scope) => Array.from(scope.variables.entries()))
+      .find((entry) => entry?.[0] === variableName)?.[1];
   }
 }
