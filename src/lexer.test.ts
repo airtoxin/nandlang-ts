@@ -1,69 +1,89 @@
 import { describe, expect, test } from "vitest";
-import { lex } from "./lexer";
+import { Lexer } from "./lexer";
+import dedent from "dedent";
 
-describe("lex", () => {
-  test("wiring", () => {
-    const program = `\
-      FROM a out TO x in
+describe("Lexer", () => {
+  test("lex", () => {
+    const program = dedent`\
+      FROM    a _      TO x _
+      
+      FROM b _ TO y         _
     `;
-    expect(lex(program)).toMatchInlineSnapshot(`
+    expect(Array.from(new Lexer(program).lex())).toMatchInlineSnapshot(`
       [
         {
-          "destVariableName": "x",
-          "destVariablePort": "in",
-          "srcVariableName": "a",
-          "srcVariablePort": "out",
-          "type": "wire",
+          "line": 0,
+          "position": 0,
+          "type": "keyword",
+          "value": "FROM",
+        },
+        {
+          "line": 0,
+          "position": 8,
+          "type": "symbol",
+          "value": "a",
+        },
+        {
+          "line": 0,
+          "position": 10,
+          "type": "symbol",
+          "value": "_",
+        },
+        {
+          "line": 0,
+          "position": 17,
+          "type": "keyword",
+          "value": "TO",
+        },
+        {
+          "line": 0,
+          "position": 20,
+          "type": "symbol",
+          "value": "x",
+        },
+        {
+          "line": 0,
+          "position": 22,
+          "type": "symbol",
+          "value": "_",
+        },
+        {
+          "line": 2,
+          "position": 0,
+          "type": "keyword",
+          "value": "FROM",
+        },
+        {
+          "line": 2,
+          "position": 5,
+          "type": "symbol",
+          "value": "b",
+        },
+        {
+          "line": 2,
+          "position": 7,
+          "type": "symbol",
+          "value": "_",
+        },
+        {
+          "line": 2,
+          "position": 9,
+          "type": "keyword",
+          "value": "TO",
+        },
+        {
+          "line": 2,
+          "position": 12,
+          "type": "symbol",
+          "value": "y",
+        },
+        {
+          "line": 2,
+          "position": 22,
+          "type": "symbol",
+          "value": "_",
         },
       ]
     `);
-  });
-
-  test("var", () => {
-    const program = `\
-      VAR x NAND
-    `;
-    expect(lex(program)).toMatchInlineSnapshot(`
-      [
-        {
-          "moduleName": "NAND",
-          "name": "x",
-          "type": "variable",
-        },
-      ]
-    `);
-  });
-
-  test("module def", () => {
-    const program = `\
-      MOD START TRASH
-        VAR in BITIN
-      MOD END
-    `;
-    expect(lex(program)).toMatchInlineSnapshot(`
-      [
-        {
-          "name": "TRASH",
-          "type": "moduleStart",
-        },
-        {
-          "moduleName": "BITIN",
-          "name": "in",
-          "type": "variable",
-        },
-        {
-          "type": "moduleEnd",
-        },
-      ]
-    `);
-  });
-
-  test("comment", () => {
-    const program = `\
-      # MOD START TRASH
-      #  VAR in BITIN
-      # MOD END
-    `;
-    expect(lex(program)).toMatchInlineSnapshot(`[]`);
   });
 });

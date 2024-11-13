@@ -1,28 +1,20 @@
-export type Token =
-  | VariableToken
-  | WireToken
-  | ModuleStartToken
-  | ModuleEndToken;
+export type Token = KeywordToken | SymbolToken | CommentToken;
 
-export type VariableToken = {
-  type: "variable";
-  name: string;
-  moduleName: string;
+export type KeywordToken = {
+  type: "keyword";
+  value: "VAR" | "FROM" | "TO" | "WIRE" | "MOD" | "START" | "END";
+  line: number;
+  position: number;
 };
 
-export type WireToken = {
-  type: "wire";
-  srcVariableName: string;
-  srcVariablePort: string;
-  destVariableName: string;
-  destVariablePort: string;
+export type SymbolToken = {
+  type: "symbol";
+  value: string;
+  line: number;
+  position: number;
 };
 
-export type ModuleStartToken = {
-  type: "moduleStart";
-  name: string;
-};
-
-export type ModuleEndToken = {
-  type: "moduleEnd";
+export type CommentToken = {
+  type: "comment";
+  line: string;
 };

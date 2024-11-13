@@ -1,64 +1,87 @@
-import {
-  ModuleEndToken,
-  ModuleStartToken,
-  Token,
-  VariableToken,
-  WireToken,
-} from "./token";
+import { Token } from "./token";
 
-export const lex = (program: string): Token[] => {
-  const tokens: Token[] = [];
-  for (const line of program.split("\n")) {
-    const words = line.trim().split(/\s+/);
-    if (
-      words[0] === "VAR" &&
-      typeof words[1] === "string" &&
-      typeof words[2] === "string" &&
-      words.length === 3
-    ) {
-      const token: VariableToken = {
-        type: "variable",
-        name: words[1],
-        moduleName: words[2],
+export class Lexer {
+  private line = 0;
+  private position = 0;
+  private index = 0;
+  constructor(private program: string) {}
+
+  public *lex(): IterableIterator<Token> {
+    while (this.index < this.program.length) {
+      const char = this.getChar();
+      if (char == null) break;
+
+      if (char === " " || char === "\t") {
+        this.index++;
+        this.position++;
+        continue;
+      }
+      if (char === "\r") {
+        this.index++;
+        if (this.getChar() === "\n") this.index++;
+        this.line++;
+        this.position = 0;
+        continue;
+      }
+      if (char === "\n") {
+        this.line++;
+        this.position = 0;
+        this.index++;
+        continue;
+      }
+
+      const currentPosition: ProgramPosition = {
+        line: this.line,
+        position: this.position,
       };
-      tokens.push(token);
-    } else if (
-      words[0] === "FROM" &&
-      typeof words[1] === "string" &&
-      typeof words[2] === "string" &&
-      words[3] === "TO" &&
-      typeof words[4] === "string" &&
-      typeof words[5] === "string" &&
-      words.length === 6
-    ) {
-      const token: WireToken = {
-        type: "wire",
-        srcVariableName: words[1],
-        srcVariablePort: words[2],
-        destVariableName: words[4],
-        destVariablePort: words[5],
-      };
-      tokens.push(token);
-    } else if (
-      words[0] === "MOD" &&
-      words[1] === "START" &&
-      typeof words[2] === "string" &&
-      words.length === 3
-    ) {
-      const token: ModuleStartToken = {
-        type: "moduleStart",
-        name: words[2],
-      };
-      tokens.push(token);
-    } else if (words[0] === "MOD" && words[1] === "END" && words.length === 2) {
-      const token: ModuleEndToken = {
-        type: "moduleEnd",
-      };
-      tokens.push(token);
-    } else if (words[0] === "#") {
-      // ignore comment line
+      const word = this.readWord();
+      if (
+        word === "VAR" ||
+        word === "FROM" ||
+        word === "TO" ||
+        word === "WIRE" ||
+        word === "MOD" ||
+        word === "START" ||
+        word === "END"
+      ) {
+        yield {
+          type: "keyword",
+          value: word,
+          ...currentPosition,
+        };
+      } else {
+        yield {
+          type: "symbol",
+          value: word,
+          ...currentPosition,
+        };
+      }
     }
   }
 
-  return tokens;
+  private getChar(): string | undefined {
+    return this.program[this.index];
+  }
+
+  private readWord(): string {
+    let word = "";
+    while (this.isLetter(this.getChar())) {
+      word += this.getChar();
+      this.index++;
+      this.position++;
+    }
+    return word;
+  }
+
+  private isLetter(ch: unknown): boolean {
+    return (
+      typeof ch === "string" &&
+      (("a" <= ch && ch <= "z") || ("A" <= ch && ch <= "Z") || ch === "_")
+    );
+  }
+}
+
+type ProgramPosition = {
+  line: number;
+  position: number;
 };
