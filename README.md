@@ -79,7 +79,7 @@ as
 input and produces one bit signal as output. If both input bits are `1`, the output is `0`; otherwise, the output is
 `1`.
 
-**ports**
+**Ports**
 
 - `i0`: Input
 - `i1`: Another input
@@ -90,7 +90,7 @@ input and produces one bit signal as output. If both input bits are `1`, the out
 `BITIN` is a special module that allows bit sequences to be input from the external environment at runtime. Each bit in
 the sequence is sent as a signal to connected modules at each tick.
 
-**ports**
+**Ports**
 
 - `o0`: Output
 
@@ -99,9 +99,27 @@ the sequence is sent as a signal to connected modules at each tick.
 Similar to BITIN, `BITOUT` is a special module. While BITIN receives bit sequences from the external environment, BITOUT
 is used to send the execution results of the circuit to the external environment.
 
-**ports**
+**Ports**
 
 - `i0`: Input
+
+### FLIPFLOP module (RS-Type)
+
+The `FLIPFLOP` is a fundamental memory element that can be used in circuits requiring basic state retention.
+In nandlang, this primitive module provides a way to set or reset an output (`q`) based on two control inputs: set (`s`) and reset (`r`).
+
+**Behavior**
+
+- When set (`s`) is `1` and reset (`r`) is `0`, the output (`q`) is set to `1`.
+- When set (`s`) is `0` and reset (`r`) is `1`, the output (`q`) is reset to `0`.
+- When both set (`s`) and reset (`r`) are `0`, the output (`q`) retains its current state.
+- When both set (`s`) and reset (`r`) are `1`, an error occurs.
+
+**Ports**
+
+- `s`: Set input. When `1`, it sets the output (`q`) to `1`.
+- `r`: Reset input. When `1`, it resets the output (`q`) to `0`.
+- `q`: Output. Holds the current state of the flip-flop.
 
 ## Syntax
 
