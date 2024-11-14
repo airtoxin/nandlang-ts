@@ -80,6 +80,7 @@ export class Lexer {
         };
       }
     }
+    yield { type: "eof", line: this.line, position: this.position };
   }
 
   private getChar(): string | undefined {
@@ -99,7 +100,10 @@ export class Lexer {
   private isLetter(ch: unknown): boolean {
     return (
       typeof ch === "string" &&
-      (("a" <= ch && ch <= "z") || ("A" <= ch && ch <= "Z") || ch === "_")
+      (("a" <= ch && ch <= "z") ||
+        ("0" <= ch && ch <= "9") ||
+        ("A" <= ch && ch <= "Z") ||
+        ch === "_")
     );
   }
 

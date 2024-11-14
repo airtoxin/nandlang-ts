@@ -99,6 +99,11 @@ describe("Lexer", () => {
           "type": "symbol",
           "value": "_",
         },
+        {
+          "line": 2,
+          "position": 38,
+          "type": "eof",
+        },
       ]
     `);
   });

@@ -1,4 +1,9 @@
-export type Token = KeywordToken | SymbolToken | LineBreakToken | CommentToken;
+export type Token =
+  | KeywordToken
+  | SymbolToken
+  | LineBreakToken
+  | CommentToken
+  | EofToken;
 
 export type KeywordToken = {
   type: "keyword";
@@ -22,6 +27,12 @@ export type LineBreakToken = {
 
 export type CommentToken = {
   type: "comment";
+  line: number;
+  position: number;
+};
+
+export type EofToken = {
+  type: "eof";
   line: number;
   position: number;
 };
