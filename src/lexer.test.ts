@@ -7,6 +7,7 @@ describe("Lexer", () => {
     const program = dedent`\
       FROM    a _      TO x _
       
+      # COMMENT LINE
       FROM b _ TO y         _
     `;
     expect(Array.from(new Lexer(program).lex())).toMatchInlineSnapshot(`
@@ -48,38 +49,53 @@ describe("Lexer", () => {
           "value": "_",
         },
         {
+          "line": 0,
+          "position": 23,
+          "type": "linebreak",
+        },
+        {
+          "line": 1,
+          "position": 0,
+          "type": "linebreak",
+        },
+        {
           "line": 2,
           "position": 0,
+          "type": "comment",
+        },
+        {
+          "line": 2,
+          "position": 15,
           "type": "keyword",
           "value": "FROM",
         },
         {
           "line": 2,
-          "position": 5,
+          "position": 20,
           "type": "symbol",
           "value": "b",
         },
         {
           "line": 2,
-          "position": 7,
+          "position": 22,
           "type": "symbol",
           "value": "_",
         },
         {
           "line": 2,
-          "position": 9,
+          "position": 24,
           "type": "keyword",
           "value": "TO",
         },
         {
           "line": 2,
-          "position": 12,
+          "position": 27,
           "type": "symbol",
           "value": "y",
         },
         {
           "line": 2,
-          "position": 22,
+          "position": 37,
           "type": "symbol",
           "value": "_",
         },

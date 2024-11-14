@@ -1,4 +1,4 @@
-export type Token = KeywordToken | SymbolToken | CommentToken;
+export type Token = KeywordToken | SymbolToken | LineBreakToken | CommentToken;
 
 export type KeywordToken = {
   type: "keyword";
@@ -14,7 +14,14 @@ export type SymbolToken = {
   position: number;
 };
 
+export type LineBreakToken = {
+  type: "linebreak";
+  line: number;
+  position: number;
+};
+
 export type CommentToken = {
   type: "comment";
-  line: string;
+  line: number;
+  position: number;
 };

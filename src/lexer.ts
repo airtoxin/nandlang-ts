@@ -17,6 +17,11 @@ export class Lexer {
         continue;
       }
       if (char === "\r") {
+        yield {
+          type: "linebreak",
+          line: this.line,
+          position: this.position,
+        };
         this.index++;
         if (this.getChar() === "\n") this.index++;
         this.line++;
@@ -24,9 +29,27 @@ export class Lexer {
         continue;
       }
       if (char === "\n") {
+        yield {
+          type: "linebreak",
+          line: this.line,
+          position: this.position,
+        };
         this.line++;
         this.position = 0;
         this.index++;
+        continue;
+      }
+
+      if (char === "#") {
+        const currentPosition: ProgramPosition = {
+          line: this.line,
+          position: this.position,
+        };
+        const line = this.readLine();
+        yield {
+          type: "comment",
+          ...currentPosition,
+        };
         continue;
       }
 
@@ -78,6 +101,20 @@ export class Lexer {
       typeof ch === "string" &&
       (("a" <= ch && ch <= "z") || ("A" <= ch && ch <= "Z") || ch === "_")
     );
+  }
+
+  private readLine(): string {
+    let line = "";
+    while (this.getChar() !== "\r" && this.getChar() !== "\n") {
+      line += this.getChar();
+      this.index++;
+      this.position++;
+    }
+    if (this.getChar() === "\n") {
+      this.index++;
+      this.position++;
+    }
+    return line;
   }
 }
 
