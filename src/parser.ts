@@ -39,17 +39,11 @@ export const parseStatement: Parser<Statement> = (tokens) => {
 };
 
 export const parseVarStatement: Parser<Statement> = (tokens) => {
-  const varKeyword = tokens[0];
+  const [varKeyword, varName, moduleName, newline, ...restTokens] = tokens;
   if (varKeyword?.type !== "keyword" || varKeyword.value !== "VAR")
     return [tokens, null];
-
-  const varName = tokens[1];
   if (varName?.type !== "symbol") return [tokens, null];
-
-  const moduleName = tokens[2];
   if (moduleName?.type !== "symbol") return [tokens, null];
-
-  const newline = tokens[3];
   if (newline?.type !== "linebreak") return [tokens, null];
 
   const statement: Statement = {
@@ -60,31 +54,28 @@ export const parseVarStatement: Parser<Statement> = (tokens) => {
       moduleName: moduleName.value,
     },
   };
-  return [tokens.slice(4), statement];
+  return [restTokens, statement];
 };
 
 export const parseWireStatement: Parser<Statement> = (tokens) => {
-  const wireKeyword = tokens[0];
+  const [
+    wireKeyword,
+    srcVarName,
+    srcPortName,
+    toKeyword,
+    destVarName,
+    destPortName,
+    newline,
+    ...restTokens
+  ] = tokens;
   if (wireKeyword?.type !== "keyword" || wireKeyword.value !== "WIRE")
     return [tokens, null];
-
-  const srcVarName = tokens[1];
   if (srcVarName?.type !== "symbol") return [tokens, null];
-
-  const srcPortName = tokens[2];
   if (srcPortName?.type !== "symbol") return [tokens, null];
-
-  const toKeyword = tokens[3];
   if (toKeyword?.type !== "keyword" || toKeyword.value !== "TO")
     return [tokens, null];
-
-  const destVarName = tokens[4];
   if (destVarName?.type !== "symbol") return [tokens, null];
-
-  const destPortName = tokens[5];
   if (destPortName?.type !== "symbol") return [tokens, null];
-
-  const newline = tokens[6];
   if (newline?.type !== "linebreak") return [tokens, null];
 
   const statement: Statement = {
@@ -97,7 +88,16 @@ export const parseWireStatement: Parser<Statement> = (tokens) => {
       destPortName: destPortName.value,
     },
   };
-  return [tokens.slice(7), statement];
+  return [restTokens, statement];
+};
+
+export const parseModuleStatement: Parser<Statement> = (tokens) => {
+  const [
+    moduleKeywordToken,
+    startKeywordToken,
+    moduleNameToken,
+    ...restTokens
+  ] = tokens;
 };
 
 export const parseComment: Parser<true> = (tokens) => {
@@ -107,7 +107,8 @@ export const parseComment: Parser<true> = (tokens) => {
 };
 
 export const parseEof: Parser<true> = (tokens) => {
-  if (tokens.length !== 1 || tokens[0]?.type !== "eof")
+  const [eof, ...restTokens] = tokens;
+  if (eof?.type !== "eof" || restTokens.length !== 0)
     throw new SyntaxError(`Expect eof but got ${tokens}`);
   return [[], true];
 };
