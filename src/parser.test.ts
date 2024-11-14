@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  multiple,
   parseComment,
   parseEof,
   parseProgram,
   parseStatement,
   parseVarStatement,
   parseWireStatement,
+  some,
 } from "./parser";
 import { Token } from "./token";
+import { Statement } from "./ast";
 
 describe("parseProgram", () => {
   it("should parse Program", () => {
@@ -200,5 +203,137 @@ describe("parseEof", () => {
   it("should throw error when empty tokens", () => {
     const tokens: Token[] = [];
     expect(() => parseEof(tokens)).toThrowError(SyntaxError);
+  });
+});
+
+describe("multiple", () => {
+  it("should parse multiple times", () => {
+    const tokens: Token[] = [
+      { type: "keyword", value: "VAR", line: 0, position: 0 },
+      { type: "symbol", value: "nand0", line: 0, position: 4 },
+      { type: "symbol", value: "NAND", line: 0, position: 9 },
+      { type: "linebreak", line: 0, position: 10 },
+      { type: "keyword", value: "VAR", line: 1, position: 0 },
+      { type: "symbol", value: "nand1", line: 1, position: 4 },
+      { type: "symbol", value: "NAND", line: 1, position: 9 },
+      { type: "linebreak", line: 1, position: 10 },
+      { type: "keyword", value: "VAR", line: 2, position: 0 },
+      { type: "symbol", value: "nand2", line: 2, position: 4 },
+      { type: "symbol", value: "NAND", line: 2, position: 9 },
+      { type: "linebreak", line: 2, position: 10 },
+    ];
+    expect(multiple(parseVarStatement)(tokens)).toEqual([
+      [],
+      [
+        {
+          subtype: {
+            moduleName: "NAND",
+            type: "varStatement",
+            variableName: "nand0",
+          },
+          type: "statement",
+        },
+        {
+          subtype: {
+            moduleName: "NAND",
+            type: "varStatement",
+            variableName: "nand1",
+          },
+          type: "statement",
+        },
+        {
+          subtype: {
+            moduleName: "NAND",
+            type: "varStatement",
+            variableName: "nand2",
+          },
+          type: "statement",
+        },
+      ],
+    ]);
+  });
+});
+
+describe("some", () => {
+  it("parse success with first parser", () => {
+    const tokens: Token[] = [
+      { type: "keyword", value: "VAR", line: 0, position: 0 },
+      { type: "symbol", value: "nand0", line: 0, position: 4 },
+      { type: "symbol", value: "NAND", line: 0, position: 9 },
+      { type: "comment", line: 1, position: 0 },
+    ];
+    expect(
+      some<Statement | true>(parseVarStatement, parseComment)(tokens),
+    ).toMatchInlineSnapshot(`
+      [
+        [
+          {
+            "line": 0,
+            "position": 0,
+            "type": "keyword",
+            "value": "VAR",
+          },
+          {
+            "line": 0,
+            "position": 4,
+            "type": "symbol",
+            "value": "nand0",
+          },
+          {
+            "line": 0,
+            "position": 9,
+            "type": "symbol",
+            "value": "NAND",
+          },
+          {
+            "line": 1,
+            "position": 0,
+            "type": "comment",
+          },
+        ],
+        null,
+      ]
+    `);
+  });
+
+  it("parse success with second parser", () => {
+    const tokens: Token[] = [
+      { type: "keyword", value: "VAR", line: 0, position: 0 },
+      { type: "symbol", value: "nand0", line: 0, position: 4 },
+      { type: "symbol", value: "NAND", line: 0, position: 9 },
+      { type: "comment", line: 1, position: 0 },
+    ];
+    expect(
+      some<Statement | true>(parseComment, parseVarStatement)(tokens),
+    ).toMatchInlineSnapshot(`
+      [
+        [
+          {
+            "line": 0,
+            "position": 0,
+            "type": "keyword",
+            "value": "VAR",
+          },
+          {
+            "line": 0,
+            "position": 4,
+            "type": "symbol",
+            "value": "nand0",
+          },
+          {
+            "line": 0,
+            "position": 9,
+            "type": "symbol",
+            "value": "NAND",
+          },
+          {
+            "line": 1,
+            "position": 0,
+            "type": "comment",
+          },
+        ],
+        null,
+      ]
+    `);
   });
 });

@@ -30,6 +30,31 @@ export const parseProgram = (tokens: Token[]): Program => {
   };
 };
 
+export const multiple =
+  <T>(parser: Parser<T>): Parser<T[]> =>
+  (tokens) => {
+    let restTokens = tokens;
+    const results: T[] = [];
+    while (true) {
+      const [parsedRest, result] = parser(restTokens);
+      if (result == null) break;
+      results.push(result);
+      restTokens = parsedRest;
+    }
+    return [restTokens, results];
+  };
+
+export const some =
+  <T>(...parsers: Parser<T>[]): Parser<T> =>
+  (tokens) => {
+    for (const parser of parsers) {
+      const [restTokens, result] = parser(tokens);
+      console.log("@parser", parser, result);
+      if (result != null) return [restTokens, result];
+    }
+    return [tokens, null];
+  };
+
 export const parseStatement: Parser<Statement> = (tokens) => {
   const varResult = parseVarStatement(tokens);
   if (varResult[1] != null) return varResult;
@@ -92,12 +117,44 @@ export const parseWireStatement: Parser<Statement> = (tokens) => {
 };
 
 export const parseModuleStatement: Parser<Statement> = (tokens) => {
+  // module start
   const [
-    moduleKeywordToken,
-    startKeywordToken,
-    moduleNameToken,
-    ...restTokens
+    moduleStartKeyword,
+    startKeyword,
+    moduleName,
+    newlineStart,
+    ...restTokensStart
   ] = tokens;
+  if (
+    moduleStartKeyword?.type !== "keyword" ||
+    moduleStartKeyword.value !== "MOD"
+  )
+    return [tokens, null];
+  if (startKeyword?.type !== "keyword" || startKeyword.value !== "START")
+    return [tokens, null];
+  if (moduleName?.type !== "symbol") return [tokens, null];
+  if (newlineStart?.type !== "linebreak") return [tokens, null];
+
+  // module definition statements
+  const definitionStatements = [];
+
+  // module end
+  const [moduleEndKeyword, endKeyword, newlineEnd, ...restTokensEnd] = tokens;
+  if (moduleEndKeyword?.type !== "keyword" || moduleEndKeyword.value !== "MOD")
+    return [tokens, null];
+  if (endKeyword?.type !== "keyword" || endKeyword.value !== "END")
+    return [tokens, null];
+  if (newlineEnd?.type !== "linebreak") return [tokens, null];
+
+  const moduleStatement: Statement = {
+    type: "statement",
+    subtype: {
+      type: "moduleStatement",
+      name: moduleName.value,
+      definitionStatements,
+    },
+  };
+  return [restTokensEnd, moduleStatement];
 };
 
 export const parseComment: Parser<true> = (tokens) => {

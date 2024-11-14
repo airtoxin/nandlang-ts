@@ -9,7 +9,11 @@ export type Statement = {
 };
 
 export type SubStatement =
-  | { type: "moduleStatement" }
+  | {
+      type: "moduleStatement";
+      name: string;
+      definitionStatements: Statement[];
+    }
   | { type: "varStatement"; variableName: string; moduleName: string }
   | {
       type: "wireStatement";
