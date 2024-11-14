@@ -38,6 +38,13 @@ export const or =
     return fail(inputs);
   };
 
+export const not =
+  (parser: Parser<unknown>): Parser<null> =>
+  (inputs) => {
+    const result = parser(inputs);
+    return !result.success ? success(null, inputs) : fail(inputs);
+  };
+
 export const seq =
   <T>(...parsers: Parser<T>[]): Parser<T[]> =>
   (inputs) => {
@@ -73,6 +80,14 @@ export const rep =
     return success(results, rest);
   };
 
+export const sub =
+  <T, U>(a: Parser<T>, b: Parser<U>): Parser<T> =>
+  (inputs) => {
+    const notBResult = not(b)(inputs);
+    if (!notBResult.success) return fail(inputs);
+    return a(inputs);
+  };
+
 export const str =
   (charSequence: string): Parser<string> =>
   (inputs) => {
@@ -80,3 +95,34 @@ export const str =
     const result = parser(inputs);
     return result.success ? success(result.data.join(""), result.rest) : result;
   };
+
+export const digit: Parser<string> = or(
+  ..."0123456789".split("").map((d) => char(d)),
+);
+
+export const lowerAlphabet: Parser<string> = or(
+  ..."abcdefghijklmnopqrstuvwxyz".split("").map((w) => char(w)),
+);
+
+export const upperAlphabet: Parser<string> = or(
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((w) => char(w)),
+);
+
+export const mapResult = <T, U>(
+  parser: Parser<T>,
+  fn: (data: T) => U,
+): Parser<U> => {
+  return (inputs) => {
+    const result = parser(inputs);
+    if (!result.success) return result;
+    return { ...result, data: fn(result.data) };
+  };
+};
+
+export const symbol: Parser<string> = sub(
+  mapResult(
+    rep(or(digit, lowerAlphabet, upperAlphabet, char("_")), 1),
+    (strs) => strs.join(""),
+  ),
+  digit,
+);
