@@ -1,171 +1,134 @@
-import { Token } from "./token";
-import { Program, Statement } from "./ast";
+import {
+  char,
+  eof,
+  mapResult,
+  or,
+  Parser,
+  rep,
+  seq,
+  str,
+  sub,
+} from "./parser-combinator";
+import { Statement } from "./ast";
 
-type Parser<T> = (tokens: Token[]) => [Token[], T | null];
+const lazy = <T>(parserFn: () => Parser<T>): Parser<T> => parserFn();
 
-export const parseProgram = (tokens: Token[]): Program => {
-  let restTokens = tokens;
-  const statements: Statement[] = [];
-  while (true) {
-    const [statementRestTokens, statement] = parseStatement(restTokens);
-    if (statement != null) {
-      statements.push(statement);
-      restTokens = statementRestTokens;
-      continue;
-    }
+export const whitespaces = (allowEmpty = true): Parser<null> =>
+  mapResult(rep(or(char(" "), char("\t")), allowEmpty ? 0 : 1), () => null);
 
-    const [commentRestTokens, parsed] = parseComment(statementRestTokens);
-    if (parsed) {
-      restTokens = commentRestTokens;
-      continue;
-    }
+export const digit: Parser<string> = or(
+  ..."0123456789".split("").map((d) => char(d)),
+);
 
-    parseEof(commentRestTokens);
-    break;
-  }
+export const lowerAlphabet: Parser<string> = or(
+  ..."abcdefghijklmnopqrstuvwxyz".split("").map((w) => char(w)),
+);
 
-  return {
-    type: "program",
-    statements,
-  };
-};
+export const upperAlphabet: Parser<string> = or(
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((w) => char(w)),
+);
 
-export const multiple =
-  <T>(parser: Parser<T>): Parser<T[]> =>
-  (tokens) => {
-    let restTokens = tokens;
-    const results: T[] = [];
-    while (true) {
-      const [parsedRest, result] = parser(restTokens);
-      if (result == null) break;
-      results.push(result);
-      restTokens = parsedRest;
-    }
-    return [restTokens, results];
-  };
+export const mapResultArrayToString = (
+  parser: Parser<string[]>,
+): Parser<string> => mapResult(parser, (strs) => strs.join(""));
 
-export const some =
-  <T>(...parsers: Parser<T>[]): Parser<T> =>
-  (tokens) => {
-    for (const parser of parsers) {
-      const [restTokens, result] = parser(tokens);
-      console.log("@parser", parser, result);
-      if (result != null) return [restTokens, result];
-    }
-    return [tokens, null];
-  };
+export const mapResultToNonNullableArray = <T>(
+  parser: Parser<(T | null)[]>,
+): Parser<T[]> =>
+  mapResult(parser, (values) => values.filter((v) => v != null));
 
-export const parseStatement: Parser<Statement> = (tokens) => {
-  const varResult = parseVarStatement(tokens);
-  if (varResult[1] != null) return varResult;
-  const wireResult = parseWireStatement(varResult[0]);
-  if (wireResult[1] != null) return wireResult;
-  return [tokens, null];
-};
+export const symbol: Parser<string> = sub(
+  mapResultArrayToString(
+    rep(or(digit, lowerAlphabet, upperAlphabet, char("_")), 1),
+  ),
+  digit,
+);
 
-export const parseVarStatement: Parser<Statement> = (tokens) => {
-  const [varKeyword, varName, moduleName, newline, ...restTokens] = tokens;
-  if (varKeyword?.type !== "keyword" || varKeyword.value !== "VAR")
-    return [tokens, null];
-  if (varName?.type !== "symbol") return [tokens, null];
-  if (moduleName?.type !== "symbol") return [tokens, null];
-  if (newline?.type !== "linebreak") return [tokens, null];
+export const linebreak: Parser<null> = mapResult(
+  or(str("\r\n"), char("\n")),
+  () => null,
+);
 
-  const statement: Statement = {
-    type: "statement",
-    subtype: {
-      type: "varStatement",
-      variableName: varName.value,
-      moduleName: moduleName.value,
-    },
-  };
-  return [restTokens, statement];
-};
+export const variableStatement: Parser<Statement> = mapResult(
+  mapResultToNonNullableArray(
+    seq(
+      whitespaces(),
+      str("VAR"),
+      whitespaces(false),
+      symbol,
+      whitespaces(false),
+      symbol,
+      whitespaces(),
+      linebreak,
+    ),
+  ),
+  ([_, variableName, moduleName]) => {
+    if (variableName == null || moduleName == null)
+      throw new Error(
+        `Unexpected input variableName:${variableName} or moduleName:${moduleName} is nullish`,
+      );
+    return {
+      type: "statement",
+      subtype: {
+        type: "varStatement",
+        variableName,
+        moduleName,
+      },
+    };
+  },
+);
 
-export const parseWireStatement: Parser<Statement> = (tokens) => {
-  const [
-    wireKeyword,
-    srcVarName,
-    srcPortName,
-    toKeyword,
-    destVarName,
-    destPortName,
-    newline,
-    ...restTokens
-  ] = tokens;
-  if (wireKeyword?.type !== "keyword" || wireKeyword.value !== "WIRE")
-    return [tokens, null];
-  if (srcVarName?.type !== "symbol") return [tokens, null];
-  if (srcPortName?.type !== "symbol") return [tokens, null];
-  if (toKeyword?.type !== "keyword" || toKeyword.value !== "TO")
-    return [tokens, null];
-  if (destVarName?.type !== "symbol") return [tokens, null];
-  if (destPortName?.type !== "symbol") return [tokens, null];
-  if (newline?.type !== "linebreak") return [tokens, null];
+export const wireStatement: Parser<Statement> = mapResult(
+  mapResultToNonNullableArray(
+    seq(
+      whitespaces(),
+      str("WIRE"),
+      whitespaces(false),
+      symbol,
+      whitespaces(false),
+      symbol,
+      whitespaces(false),
+      str("TO"),
+      whitespaces(false),
+      symbol,
+      whitespaces(false),
+      symbol,
+      whitespaces(),
+      linebreak,
+    ),
+  ),
+  ([_, srcVariableName, srcPortName, __, destVariableName, destPortName]) => {
+    if (srcVariableName == null || srcPortName == null)
+      throw new Error(
+        `Unexpected input srcVariableName:${srcVariableName} or srcPortName:${srcPortName} is nullish`,
+      );
+    if (destVariableName == null || destPortName == null)
+      throw new Error(
+        `Unexpected input destVariableName:${destVariableName} or destPortName:${destPortName} is nullish`,
+      );
+    return {
+      type: "statement",
+      subtype: {
+        type: "wireStatement",
+        srcVariableName,
+        srcPortName,
+        destVariableName,
+        destPortName,
+      },
+    };
+  },
+);
 
-  const statement: Statement = {
-    type: "statement",
-    subtype: {
-      type: "wireStatement",
-      srcVariableName: srcVarName.value,
-      srcPortName: srcPortName.value,
-      destVariableName: destVarName.value,
-      destPortName: destPortName.value,
-    },
-  };
-  return [restTokens, statement];
-};
+export const emptyLine: Parser<null> = mapResult(
+  seq(whitespaces(), linebreak),
+  () => null,
+);
 
-export const parseModuleStatement: Parser<Statement> = (tokens) => {
-  // module start
-  const [
-    moduleStartKeyword,
-    startKeyword,
-    moduleName,
-    newlineStart,
-    ...restTokensStart
-  ] = tokens;
-  if (
-    moduleStartKeyword?.type !== "keyword" ||
-    moduleStartKeyword.value !== "MOD"
-  )
-    return [tokens, null];
-  if (startKeyword?.type !== "keyword" || startKeyword.value !== "START")
-    return [tokens, null];
-  if (moduleName?.type !== "symbol") return [tokens, null];
-  if (newlineStart?.type !== "linebreak") return [tokens, null];
+export const statement: Parser<Statement> = or(
+  variableStatement,
+  wireStatement,
+);
 
-  // module definition statements
-  const definitionStatements = [];
-
-  // module end
-  const [moduleEndKeyword, endKeyword, newlineEnd, ...restTokensEnd] = tokens;
-  if (moduleEndKeyword?.type !== "keyword" || moduleEndKeyword.value !== "MOD")
-    return [tokens, null];
-  if (endKeyword?.type !== "keyword" || endKeyword.value !== "END")
-    return [tokens, null];
-  if (newlineEnd?.type !== "linebreak") return [tokens, null];
-
-  const moduleStatement: Statement = {
-    type: "statement",
-    subtype: {
-      type: "moduleStatement",
-      name: moduleName.value,
-      definitionStatements,
-    },
-  };
-  return [restTokensEnd, moduleStatement];
-};
-
-export const parseComment: Parser<true> = (tokens) => {
-  const [commentToken, ...restTokens] = tokens;
-  if (commentToken?.type !== "comment") return [tokens, null];
-  return [restTokens, true];
-};
-
-export const parseEof: Parser<true> = (tokens) => {
-  const [eof, ...restTokens] = tokens;
-  if (eof?.type !== "eof" || restTokens.length !== 0)
-    throw new SyntaxError(`Expect eof but got ${tokens}`);
-  return [[], true];
-};
+export const statements: Parser<Statement[]> = mapResultToNonNullableArray(
+  rep(or(statement, emptyLine)),
+);

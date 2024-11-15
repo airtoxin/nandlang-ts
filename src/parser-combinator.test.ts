@@ -2,9 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   anyChar,
   char,
-  digit,
   eof,
-  lowerAlphabet,
   mapResult,
   not,
   or,
@@ -12,9 +10,8 @@ import {
   seq,
   str,
   sub,
-  symbol,
-  upperAlphabet,
 } from "./parser-combinator";
+import { digit } from "./parser";
 
 describe("anyChar", () => {
   test("succeeds with non-empty input", () => {
@@ -430,123 +427,6 @@ describe("str", () => {
   });
 });
 
-describe("digit", () => {
-  test("succeeds when input start with digit", () => {
-    expect(digit([..."3qn4"])).toMatchInlineSnapshot(`
-      {
-        "data": "3",
-        "rest": [
-          "q",
-          "n",
-          "4",
-        ],
-        "success": true,
-      }
-    `);
-  });
-
-  test("fails when input start with non-digit characters", () => {
-    expect(digit([..."yuk1"])).toMatchInlineSnapshot(`
-      {
-        "rest": [
-          "y",
-          "u",
-          "k",
-          "1",
-        ],
-        "success": false,
-      }
-    `);
-  });
-
-  test("fails when input is empty", () => {
-    expect(digit([])).toMatchInlineSnapshot(`
-      {
-        "rest": [],
-        "success": false,
-      }
-    `);
-  });
-});
-
-describe("lowerAlphabet", () => {
-  test("succeeds when input start with lowerAlphabet", () => {
-    expect(lowerAlphabet([..."start"])).toMatchInlineSnapshot(`
-      {
-        "data": "s",
-        "rest": [
-          "t",
-          "a",
-          "r",
-          "t",
-        ],
-        "success": true,
-      }
-    `);
-  });
-
-  test("fails when input start with non-lowerAlphabet characters", () => {
-    expect(lowerAlphabet([..."4yg"])).toMatchInlineSnapshot(`
-      {
-        "rest": [
-          "4",
-          "y",
-          "g",
-        ],
-        "success": false,
-      }
-    `);
-  });
-
-  test("fails when input is empty", () => {
-    expect(lowerAlphabet([])).toMatchInlineSnapshot(`
-      {
-        "rest": [],
-        "success": false,
-      }
-    `);
-  });
-});
-
-describe("upperAlphabet", () => {
-  test("succeeds when input start with upperAlphabet", () => {
-    expect(upperAlphabet([..."Start"])).toMatchInlineSnapshot(`
-      {
-        "data": "S",
-        "rest": [
-          "t",
-          "a",
-          "r",
-          "t",
-        ],
-        "success": true,
-      }
-    `);
-  });
-
-  test("fails when input start with non-upperAlphabet characters", () => {
-    expect(upperAlphabet([..."4yg"])).toMatchInlineSnapshot(`
-      {
-        "rest": [
-          "4",
-          "y",
-          "g",
-        ],
-        "success": false,
-      }
-    `);
-  });
-
-  test("fails when input is empty", () => {
-    expect(upperAlphabet([])).toMatchInlineSnapshot(`
-      {
-        "rest": [],
-        "success": false,
-      }
-    `);
-  });
-});
-
 describe("mapResult", () => {
   test("apply fn when parse succeeded", () => {
     expect(mapResult(char("a"), (a) => a.repeat(10))([..."abcde"]))
@@ -560,65 +440,6 @@ describe("mapResult", () => {
           "e",
         ],
         "success": true,
-      }
-    `);
-  });
-});
-
-describe("symbol", () => {
-  test("success with alphabet word", () => {
-    expect(symbol([..."hE110 world"])).toMatchInlineSnapshot(`
-      {
-        "data": "hE110",
-        "rest": [
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
-        "success": true,
-      }
-    `);
-  });
-
-  test("success with underscore word", () => {
-    expect(symbol([..."__hE110 world"])).toMatchInlineSnapshot(`
-      {
-        "data": "__hE110",
-        "rest": [
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
-        "success": true,
-      }
-    `);
-  });
-
-  test("fails when input start with digit", () => {
-    expect(symbol([..."9_hE110 world"])).toMatchInlineSnapshot(`
-      {
-        "rest": [
-          "9",
-          "_",
-          "h",
-          "E",
-          "1",
-          "1",
-          "0",
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
-        "success": false,
       }
     `);
   });

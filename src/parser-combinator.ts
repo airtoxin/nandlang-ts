@@ -96,18 +96,6 @@ export const str =
     return result.success ? success(result.data.join(""), result.rest) : result;
   };
 
-export const digit: Parser<string> = or(
-  ..."0123456789".split("").map((d) => char(d)),
-);
-
-export const lowerAlphabet: Parser<string> = or(
-  ..."abcdefghijklmnopqrstuvwxyz".split("").map((w) => char(w)),
-);
-
-export const upperAlphabet: Parser<string> = or(
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((w) => char(w)),
-);
-
 export const mapResult = <T, U>(
   parser: Parser<T>,
   fn: (data: T) => U,
@@ -118,11 +106,3 @@ export const mapResult = <T, U>(
     return { ...result, data: fn(result.data) };
   };
 };
-
-export const symbol: Parser<string> = sub(
-  mapResult(
-    rep(or(digit, lowerAlphabet, upperAlphabet, char("_")), 1),
-    (strs) => strs.join(""),
-  ),
-  digit,
-);
