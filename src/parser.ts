@@ -11,8 +11,6 @@ import {
 } from "./parser-combinator";
 import { Statement } from "./ast";
 
-const lazy = <T>(parserFn: () => Parser<T>): Parser<T> => parserFn();
-
 export const whitespaces = (allowEmpty = true): Parser<null> =>
   mapResult(rep(or(char(" "), char("\t")), allowEmpty ? 0 : 1), () => null);
 
@@ -119,36 +117,47 @@ export const wireStatement: Parser<Statement> = mapResult(
   },
 );
 
-export const moduleStatement: Parser<Statement> = lazy(() =>
+// To avoid a ReferenceError due to circular dependency between `statements` and `moduleStatement`,
+// one of the definitions is wrapped in a function. This ensures that the variable
+// is not accessed before it is fully initialized.
+export const moduleStatement: () => Parser<Statement> = () =>
   mapResult(
     mapResultToNonNullableArray(
       seq<Statement[] | string | null>(
         whitespaces(),
-        str("MOD START"),
+        str("MOD"),
+        whitespaces(false),
+        str("START"),
         whitespaces(false),
         symbol,
         whitespaces(),
         linebreak,
         statements,
         whitespaces(),
-        str("MOD END"),
+        str("MOD"),
+        whitespaces(false),
+        str("END"),
         whitespaces(),
         linebreak,
       ),
     ),
-    (tokens) => {
-      console.log("@tokens", tokens);
+    ([_, __, moduleName, definitionStatements]) => {
+      if (typeof moduleName !== "string")
+        throw new Error(`Unexpected input moduleName:${moduleName}`);
+      if (!Array.isArray(definitionStatements))
+        throw new Error(
+          `Unexpected input definitionStatements:${definitionStatements}`,
+        );
       return {
         type: "statement",
         subtype: {
           type: "moduleStatement",
-          name: "TEST",
-          definitionStatements: [],
+          name: moduleName,
+          definitionStatements,
         },
       };
     },
-  ),
-);
+  );
 
 export const emptyLine: Parser<null> = mapResult(
   seq(whitespaces(), linebreak),
@@ -158,6 +167,8 @@ export const emptyLine: Parser<null> = mapResult(
 export const statement: Parser<Statement> = or(
   variableStatement,
   wireStatement,
+  // TODO: This allows to module statement in module statement
+  // moduleStatement()
 );
 
 export const statements: Parser<Statement[]> = mapResultToNonNullableArray(
