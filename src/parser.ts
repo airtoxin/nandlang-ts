@@ -119,6 +119,37 @@ export const wireStatement: Parser<Statement> = mapResult(
   },
 );
 
+export const moduleStatement: Parser<Statement> = lazy(() =>
+  mapResult(
+    mapResultToNonNullableArray(
+      seq<Statement[] | string | null>(
+        whitespaces(),
+        str("MOD START"),
+        whitespaces(false),
+        symbol,
+        whitespaces(),
+        linebreak,
+        statements,
+        whitespaces(),
+        str("MOD END"),
+        whitespaces(),
+        linebreak,
+      ),
+    ),
+    (tokens) => {
+      console.log("@tokens", tokens);
+      return {
+        type: "statement",
+        subtype: {
+          type: "moduleStatement",
+          name: "TEST",
+          definitionStatements: [],
+        },
+      };
+    },
+  ),
+);
+
 export const emptyLine: Parser<null> = mapResult(
   seq(whitespaces(), linebreak),
   () => null,

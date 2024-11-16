@@ -4,6 +4,7 @@ import {
   emptyLine,
   linebreak,
   lowerAlphabet,
+  moduleStatement,
   statements,
   symbol,
   upperAlphabet,
@@ -11,6 +12,7 @@ import {
   whitespaces,
   wireStatement,
 } from "./parser";
+import dedent from "dedent";
 
 describe("whitespaces", () => {
   test("succeeds with spaces and tabs", () => {
@@ -428,5 +430,17 @@ describe("statements", () => {
         "success": true,
       }
     `);
+  });
+});
+
+describe("moduleStatement", () => {
+  test("succeeds with statement", () => {
+    const moduleDef = dedent`\
+      MOD START NONE
+        VAR in BITIN
+        VAR out BITOUT
+      MOD END
+    `;
+    expect(moduleStatement([...moduleDef]));
   });
 });
