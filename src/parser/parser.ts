@@ -9,7 +9,7 @@ import {
   str,
   sub,
 } from "./parser-combinator";
-import { Statement } from "./ast";
+import { Statement } from "../ast";
 
 export const whitespaces = (allowEmpty = true): Parser<null> =>
   mapResult(rep(or(char(" "), char("\t")), allowEmpty ? 0 : 1), () => null);
