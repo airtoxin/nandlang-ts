@@ -11,7 +11,7 @@ import {
   str,
   sub,
 } from "./parser-combinator";
-import { digit } from "./parser";
+import { digit } from "../parser/parser";
 
 describe("anyChar", () => {
   test("succeeds with non-empty input", () => {
