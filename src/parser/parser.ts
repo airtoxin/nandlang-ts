@@ -1,6 +1,5 @@
 import {
   char,
-  eof,
   mapResult,
   or,
   Parser,
@@ -9,9 +8,6 @@ import {
   str,
   sub,
 } from "../lib/parser-combinator";
-import { Statement } from "./ast";
-import { moduleStatement } from "./module";
-import { variableStatement, wireStatement } from "./statement";
 
 export const whitespaces = (allowEmpty = true): Parser<null> =>
   mapResult(rep(or(char(" "), char("\t")), allowEmpty ? 0 : 1), () => null);
@@ -53,3 +49,17 @@ export const emptyLine: Parser<null> = mapResult(
   seq(whitespaces(), linebreak),
   () => null,
 );
+
+export const lazy = <T>(): Parser<T> & {
+  init: (parser: Parser<T>) => void;
+} => {
+  let parser: Parser<T> | null = null;
+  function internal(inputs: string[]) {
+    if (parser == null) throw new Error(`later parser not initialized`);
+    return parser(inputs);
+  }
+  internal.init = (p: Parser<T>) => {
+    parser = p;
+  };
+  return internal;
+};

@@ -2,6 +2,7 @@ import { mapResult, or, Parser, rep, seq, str } from "../lib/parser-combinator";
 import { Statement } from "./ast";
 import {
   emptyLine,
+  lazy,
   linebreak,
   mapResultToNonNullableArray,
   symbol,
@@ -78,14 +79,55 @@ export const wireStatement: Parser<Statement> = mapResult(
   },
 );
 
+export const moduleStatement = lazy<Statement>();
+
 export const statement: Parser<Statement | null> = or(
   variableStatement,
   wireStatement,
-  // TODO: This allows to module statement in module statement
-  // moduleStatement,
+  moduleStatement,
   emptyLine,
 );
 
 export const statements: Parser<Statement[]> = mapResultToNonNullableArray(
   rep(statement),
+);
+
+moduleStatement.init(
+  mapResult(
+    mapResultToNonNullableArray(
+      seq<Statement[] | string | null>(
+        whitespaces(),
+        str("MOD"),
+        whitespaces(false),
+        str("START"),
+        whitespaces(false),
+        symbol,
+        whitespaces(),
+        linebreak,
+        statements,
+        whitespaces(),
+        str("MOD"),
+        whitespaces(false),
+        str("END"),
+        whitespaces(),
+        linebreak,
+      ),
+    ),
+    ([_, __, moduleName, definitionStatements]) => {
+      if (typeof moduleName !== "string")
+        throw new Error(`Unexpected input moduleName:${moduleName}`);
+      if (!Array.isArray(definitionStatements))
+        throw new Error(
+          `Unexpected input definitionStatements:${definitionStatements}`,
+        );
+      return {
+        type: "statement",
+        subtype: {
+          type: "moduleStatement",
+          name: moduleName,
+          definitionStatements,
+        },
+      };
+    },
+  ),
 );

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { statements, variableStatement, wireStatement } from "./statement";
+import {
+  moduleStatement,
+  statements,
+  variableStatement,
+  wireStatement,
+} from "./statement";
 
 describe("variableStatement", () => {
   test("succeeds with variable statement", () => {
@@ -170,6 +175,144 @@ describe("statements", () => {
           "e",
           "s",
           "t",
+        ],
+        "success": true,
+      }
+    `);
+  });
+});
+
+describe("moduleStatement", () => {
+  test("succeeds with statement", () => {
+    const moduleDef = `\
+      MOD START NONE
+        VAR in BITIN
+        VAR out BITOUT
+      MOD END
+      rest
+    `;
+    expect(moduleStatement([...moduleDef])).toMatchInlineSnapshot(`
+      {
+        "data": {
+          "subtype": {
+            "definitionStatements": [
+              {
+                "subtype": {
+                  "moduleName": "BITIN",
+                  "type": "varStatement",
+                  "variableName": "in",
+                },
+                "type": "statement",
+              },
+              {
+                "subtype": {
+                  "moduleName": "BITOUT",
+                  "type": "varStatement",
+                  "variableName": "out",
+                },
+                "type": "statement",
+              },
+            ],
+            "name": "NONE",
+            "type": "moduleStatement",
+          },
+          "type": "statement",
+        },
+        "rest": [
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          "r",
+          "e",
+          "s",
+          "t",
+          "
+      ",
+          " ",
+          " ",
+          " ",
+          " ",
+        ],
+        "success": true,
+      }
+    `);
+  });
+
+  test("succeeds with module in module", () => {
+    const moduleDef = `\
+      MOD START NONE
+        VAR in BITIN
+        VAR out BITOUT
+        MOD START INTERNAL
+          VAR out BITOUT
+        MOD END
+      MOD END
+      rest
+    `;
+    expect(moduleStatement([...moduleDef])).toMatchInlineSnapshot(`
+      {
+        "data": {
+          "subtype": {
+            "definitionStatements": [
+              {
+                "subtype": {
+                  "moduleName": "BITIN",
+                  "type": "varStatement",
+                  "variableName": "in",
+                },
+                "type": "statement",
+              },
+              {
+                "subtype": {
+                  "moduleName": "BITOUT",
+                  "type": "varStatement",
+                  "variableName": "out",
+                },
+                "type": "statement",
+              },
+              {
+                "subtype": {
+                  "definitionStatements": [
+                    {
+                      "subtype": {
+                        "moduleName": "BITOUT",
+                        "type": "varStatement",
+                        "variableName": "out",
+                      },
+                      "type": "statement",
+                    },
+                  ],
+                  "name": "INTERNAL",
+                  "type": "moduleStatement",
+                },
+                "type": "statement",
+              },
+            ],
+            "name": "NONE",
+            "type": "moduleStatement",
+          },
+          "type": "statement",
+        },
+        "rest": [
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          "r",
+          "e",
+          "s",
+          "t",
+          "
+      ",
+          " ",
+          " ",
+          " ",
+          " ",
         ],
         "success": true,
       }

@@ -2,14 +2,14 @@ import { describe, expect, test } from "vitest";
 import {
   digit,
   emptyLine,
+  lazy,
   linebreak,
   lowerAlphabet,
   symbol,
   upperAlphabet,
   whitespaces,
 } from "./parser";
-import { moduleStatement } from "./module";
-import { statements, variableStatement, wireStatement } from "./statement";
+import { char } from "../lib/parser-combinator";
 
 describe("whitespaces", () => {
   test("succeeds with spaces and tabs", () => {
@@ -251,5 +251,28 @@ describe("emptyLine", () => {
         "success": true,
       }
     `);
+  });
+});
+
+describe("lazy", () => {
+  test("succeeds with lazy initialized parser", () => {
+    const parser = lazy<string>();
+    parser.init(char("@"));
+    expect(parser([..."@abc"])).toMatchInlineSnapshot(`
+      {
+        "data": "@",
+        "rest": [
+          "a",
+          "b",
+          "c",
+        ],
+        "success": true,
+      }
+    `);
+  });
+
+  test("fails with not initialized", () => {
+    const parser = lazy<string>();
+    expect(() => parser([..."@abc"])).toThrowError();
   });
 });
