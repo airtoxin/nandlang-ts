@@ -1,4 +1,14 @@
-import { mapResult, or, Parser, rep, seq, str } from "../lib/parser-combinator";
+import {
+  anyChar,
+  char,
+  mapResult,
+  or,
+  Parser,
+  rep,
+  seq,
+  str,
+  sub,
+} from "../lib/parser-combinator";
 import { Statement } from "./ast";
 import {
   emptyLine,
@@ -8,6 +18,16 @@ import {
   symbol,
   whitespaces,
 } from "./parser";
+
+export const commentStatement: Parser<null> = mapResult(
+  seq<unknown>(
+    whitespaces(),
+    char("#"),
+    rep(sub(anyChar, linebreak)),
+    linebreak,
+  ),
+  () => null,
+);
 
 export const variableStatement: Parser<Statement> = mapResult(
   mapResultToNonNullableArray(
@@ -82,6 +102,7 @@ export const wireStatement: Parser<Statement> = mapResult(
 export const moduleStatement = lazy<Statement>();
 
 export const statement: Parser<Statement | null> = or(
+  commentStatement,
   variableStatement,
   wireStatement,
   moduleStatement,

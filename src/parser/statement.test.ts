@@ -1,10 +1,74 @@
 import { describe, expect, test } from "vitest";
 import {
+  commentStatement,
   moduleStatement,
   statements,
   variableStatement,
   wireStatement,
 } from "./statement";
+
+describe("commentStatement", () => {
+  test("succeeds with comment line", () => {
+    expect(commentStatement([...`# this is comment\nfoo`]))
+      .toMatchInlineSnapshot(`
+      {
+        "data": null,
+        "rest": [
+          "f",
+          "o",
+          "o",
+        ],
+        "success": true,
+      }
+    `);
+  });
+
+  test("fails with inline comment", () => {
+    expect(commentStatement([...`VAR in BITIN # this is comment\nfoo`]))
+      .toMatchInlineSnapshot(`
+        {
+          "rest": [
+            "V",
+            "A",
+            "R",
+            " ",
+            "i",
+            "n",
+            " ",
+            "B",
+            "I",
+            "T",
+            "I",
+            "N",
+            " ",
+            "#",
+            " ",
+            "t",
+            "h",
+            "i",
+            "s",
+            " ",
+            "i",
+            "s",
+            " ",
+            "c",
+            "o",
+            "m",
+            "m",
+            "e",
+            "n",
+            "t",
+            "
+        ",
+            "f",
+            "o",
+            "o",
+          ],
+          "success": false,
+        }
+      `);
+  });
+});
 
 describe("variableStatement", () => {
   test("succeeds with variable statement", () => {
