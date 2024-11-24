@@ -1,7 +1,8 @@
 import { Program as ProgramAst } from "../parser/ast";
-import { reactive, Reactive } from "@reactively/core";
-import { nand } from "../gate";
+import { Reactive } from "@reactively/core";
 import invariant from "tiny-invariant";
+import { BitinModule, BitoutModule, Module, NandModule } from "./module";
+import { Variable } from "./variable";
 
 export class Program {
   private bitIns: Map<string, Reactive<boolean>> = new Map();
@@ -91,52 +92,4 @@ export class Program {
 
     return outputSignals;
   }
-}
-
-export abstract class Module {
-  constructor(public readonly name: string) {}
-  public abstract createVariable(varName: string): Variable;
-}
-
-class NandModule implements Module {
-  public readonly name = "NAND";
-  public createVariable(varName: string): Variable {
-    const i0 = reactive(false);
-    const i1 = reactive(false);
-    const o0 = reactive(() => nand(i0.value, i1.value));
-    return new Variable(
-      varName,
-      this,
-      new Map([
-        ["i0", i0],
-        ["i1", i1],
-      ]),
-      new Map([["o0", o0]]),
-    );
-  }
-}
-
-class BitinModule implements Module {
-  public readonly name = "BITIN";
-  public readonly port = reactive(false);
-  public createVariable(varName: string): Variable {
-    return new Variable(varName, this, new Map(), new Map([["o0", this.port]]));
-  }
-}
-
-class BitoutModule implements Module {
-  public readonly name = "BITOUT";
-  public readonly port = reactive(false);
-  public createVariable(varName: string): Variable {
-    return new Variable(varName, this, new Map([["i0", this.port]]), new Map());
-  }
-}
-
-export class Variable {
-  constructor(
-    public readonly name: string,
-    public readonly module: Module,
-    public readonly inPorts: Map<string, Reactive<boolean>>,
-    public readonly outPorts: Map<string, Reactive<boolean>>,
-  ) {}
 }
