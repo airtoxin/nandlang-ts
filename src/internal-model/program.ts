@@ -1,77 +1,79 @@
-import { Program as ProgramAst, Statement, SubStatement } from "../parser/ast";
+import { Program as ProgramAst } from "../parser/ast";
 import { reactive, Reactive } from "@reactively/core";
 import { nand } from "../gate";
+import invariant from "tiny-invariant";
 
 export class Program {
   private bitIns: Map<string, Reactive<boolean>> = new Map();
   private bitOuts: Map<string, Reactive<boolean>> = new Map();
   private variables: Variable[] = [];
+  private modules: Module[] = [
+    new NandModule(),
+    new BitinModule(),
+    new BitoutModule(),
+  ];
 
   constructor(private programAst: ProgramAst) {
     for (const statement of programAst.statements) {
       if (statement.subtype.type === "varStatement") {
-        const variable = new Variable(statement.subtype);
+        const moduleName = statement.subtype.moduleName;
+        const module = this.modules.find((m) => m.name === moduleName);
+        invariant(
+          module,
+          `Can't find module definition ${moduleName} of variable ${statement.subtype.variableName}`,
+        );
+
+        const variable = module.createVariable(statement.subtype.variableName);
         this.variables.push(variable);
 
-        if (variable.module.isBitin()) {
-          const port = reactive(false);
-          this.bitIns.set(variable.name, port);
-          variable.outPorts.set("o0", port);
-        } else if (variable.module.isBitout()) {
-          const port = reactive(false);
-          variable.inPorts.set("i0", port);
-          this.bitOuts.set(variable.name, port);
-        } else if (variable.module.isNand()) {
-          const i0 = reactive(false);
-          const i1 = reactive(false);
-          const o0 = reactive(() => nand(i0.value, i1.value));
-          variable.inPorts.set("i0", i0);
-          variable.inPorts.set("i1", i1);
-          variable.outPorts.set("o0", o0);
+        if (module instanceof BitinModule) {
+          this.bitIns.set(variable.name, module.port);
+        } else if (module instanceof BitoutModule) {
+          this.bitOuts.set(variable.name, module.port);
         }
       } else if (statement.subtype.type === "wireStatement") {
         const { srcVariableName, srcPortName, destVariableName, destPortName } =
           statement.subtype;
 
         const srcVar = this.variables.find((v) => v.name === srcVariableName);
-        if (srcVar == null)
-          throw new Error(`wire source variable not found: ${srcVariableName}`);
-        if (srcPortName === "_" && srcVar.outPorts.size !== 1)
-          throw new Error(
-            `Can't determine src port name of variable:${srcVar.name}`,
-          );
+        invariant(srcVar, `wire source variable not found: ${srcVariableName}`);
+        invariant(
+          srcPortName === "_" && srcVar.outPorts.size !== 1,
+          `Can't determine src port name of variable:${srcVar.name}`,
+        );
         const fixedSrcPortName =
           srcPortName === "_"
             ? srcVar.outPorts.entries().next().value?.[0]
             : srcPortName;
-        if (fixedSrcPortName == null) throw new Error(`Unexpected`);
+        invariant(fixedSrcPortName, `Can't find source port ${srcPortName}`);
         const srcPort = srcVar.outPorts.get(fixedSrcPortName);
-        if (srcPort == null)
-          throw new Error(`Unknown port name of variable:${fixedSrcPortName}`);
+        invariant(srcPort, `Unknown port name of variable:${fixedSrcPortName}`);
 
         const destVar = this.variables.find((v) => v.name === destVariableName);
-        if (destVar == null)
-          throw new Error(
-            `wire destination variable not found: ${destVariableName}`,
-          );
-        if (destPortName === "_" && destVar.inPorts.size !== 1)
-          throw new Error(
-            `Can't determine dest port name of variable:${destVar.name}`,
-          );
+        invariant(
+          destVar,
+          `wire destination variable not found: ${destVariableName}`,
+        );
+        invariant(
+          destPortName === "_" && destVar.inPorts.size !== 1,
+          `Can't determine dest port name of variable:${destVar.name}`,
+        );
         const fixedDestPortName =
           destPortName === "_"
             ? destVar.inPorts.entries().next().value?.[0]
             : destPortName;
-        if (fixedDestPortName == null) throw new Error(`Unexpected`);
+        invariant(fixedDestPortName, `Can't find source port ${destPortName}`);
         const destPort = destVar.inPorts.get(fixedDestPortName);
-        if (destPort == null)
-          throw new Error(`Unknown port name of variable:${fixedDestPortName}`);
+        invariant(
+          destPort,
+          `Unknown port name of variable:${fixedDestPortName}`,
+        );
 
         // TODO: Depends on the internal specifications of the reactively lib.
-        if (destPort["fn"] != null)
-          throw new Error(
-            `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
-          );
+        invariant(
+          destPort["fn"] != null,
+          `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
+        );
         destPort.set(() => srcPort.value);
       }
     }
@@ -91,44 +93,50 @@ export class Program {
   }
 }
 
-export class Module {
-  constructor(
-    public readonly name: string,
-    private definitionStatements?: Statement[],
-  ) {}
+export abstract class Module {
+  constructor(public readonly name: string) {}
+  public abstract createVariable(varName: string): Variable;
+}
 
-  public isNand(): boolean {
-    return this.name === "NAND" && this.definitionStatements == null;
+class NandModule implements Module {
+  public readonly name = "NAND";
+  public createVariable(varName: string): Variable {
+    const i0 = reactive(false);
+    const i1 = reactive(false);
+    const o0 = reactive(() => nand(i0.value, i1.value));
+    return new Variable(
+      varName,
+      this,
+      new Map([
+        ["i0", i0],
+        ["i1", i1],
+      ]),
+      new Map([["o0", o0]]),
+    );
   }
+}
 
-  public isBitin(): boolean {
-    return this.name === "BITIN" && this.definitionStatements == null;
+class BitinModule implements Module {
+  public readonly name = "BITIN";
+  public readonly port = reactive(false);
+  public createVariable(varName: string): Variable {
+    return new Variable(varName, this, new Map(), new Map([["o0", this.port]]));
   }
+}
 
-  public isBitout(): boolean {
-    return this.name === "BITOUT" && this.definitionStatements == null;
-  }
-
-  public isFlipflop(): boolean {
-    return this.name === "FLIPFLOP" && this.definitionStatements == null;
-  }
-
-  public isUserDefined(): boolean {
-    return (this.definitionStatements?.length ?? 0) > 0;
+class BitoutModule implements Module {
+  public readonly name = "BITOUT";
+  public readonly port = reactive(false);
+  public createVariable(varName: string): Variable {
+    return new Variable(varName, this, new Map([["i0", this.port]]), new Map());
   }
 }
 
 export class Variable {
-  public readonly name: string;
-  public readonly module: Module;
-  public readonly inPorts: Map<string, Reactive<boolean>> = new Map();
-  public readonly outPorts: Map<string, Reactive<boolean>> = new Map();
-
   constructor(
-    private variableStatement: Extract<SubStatement, { type: "varStatement" }>,
-  ) {
-    this.name = variableStatement.variableName;
-    // TODO: module definition statements
-    this.module = new Module(variableStatement.moduleName);
-  }
+    public readonly name: string,
+    public readonly module: Module,
+    public readonly inPorts: Map<string, Reactive<boolean>>,
+    public readonly outPorts: Map<string, Reactive<boolean>>,
+  ) {}
 }
