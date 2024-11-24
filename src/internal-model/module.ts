@@ -17,7 +17,6 @@ export class NandModule implements Module {
     const o0 = reactive(() => nand(i0.value, i1.value));
     return new Variable(
       varName,
-      this,
       new Map([
         ["i0", i0],
         ["i1", i1],
@@ -29,18 +28,16 @@ export class NandModule implements Module {
 
 export class BitinModule implements Module {
   public readonly name = "BITIN";
-  public readonly port = reactive(false);
 
   public createVariable(varName: string): Variable {
-    return new Variable(varName, this, new Map(), new Map([["o0", this.port]]));
+    return new Variable(varName, new Map(), new Map([["o0", reactive(false)]]));
   }
 }
 
 export class BitoutModule implements Module {
   public readonly name = "BITOUT";
-  public readonly port = reactive(false);
 
   public createVariable(varName: string): Variable {
-    return new Variable(varName, this, new Map([["i0", this.port]]), new Map());
+    return new Variable(varName, new Map([["i0", reactive(false)]]), new Map());
   }
 }

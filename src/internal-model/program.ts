@@ -15,7 +15,7 @@ export class Program {
   ];
 
   constructor(private programAst: ProgramAst) {
-    for (const statement of programAst.statements) {
+    for (const statement of this.programAst.statements) {
       if (statement.subtype.type === "varStatement") {
         const moduleName = statement.subtype.moduleName;
         const module = this.modules.find((m) => m.name === moduleName);
@@ -28,9 +28,13 @@ export class Program {
         this.variables.push(variable);
 
         if (module instanceof BitinModule) {
-          this.bitIns.set(variable.name, module.port);
+          const port = variable.outPorts.get("o0");
+          invariant(port, "Can't find port o0 of BITIN");
+          this.bitIns.set(variable.name, port);
         } else if (module instanceof BitoutModule) {
-          this.bitOuts.set(variable.name, module.port);
+          const port = variable.inPorts.get("i0");
+          invariant(port, "Can't find port i0 of BITIN");
+          this.bitOuts.set(variable.name, port);
         }
       } else if (statement.subtype.type === "wireStatement") {
         const { srcVariableName, srcPortName, destVariableName, destPortName } =
@@ -38,10 +42,10 @@ export class Program {
 
         const srcVar = this.variables.find((v) => v.name === srcVariableName);
         invariant(srcVar, `wire source variable not found: ${srcVariableName}`);
-        invariant(
-          srcPortName === "_" && srcVar.outPorts.size !== 1,
-          `Can't determine src port name of variable:${srcVar.name}`,
-        );
+        if (srcPortName === "_" && srcVar.outPorts.size !== 1)
+          throw new Error(
+            `Can't determine src port name of variable:${srcVar.name}`,
+          );
         const fixedSrcPortName =
           srcPortName === "_"
             ? srcVar.outPorts.entries().next().value?.[0]
@@ -55,10 +59,10 @@ export class Program {
           destVar,
           `wire destination variable not found: ${destVariableName}`,
         );
-        invariant(
-          destPortName === "_" && destVar.inPorts.size !== 1,
-          `Can't determine dest port name of variable:${destVar.name}`,
-        );
+        if (destPortName === "_" && destVar.inPorts.size !== 1)
+          throw new Error(
+            `Can't determine dest port name of variable:${destVar.name}`,
+          );
         const fixedDestPortName =
           destPortName === "_"
             ? destVar.inPorts.entries().next().value?.[0]
@@ -71,10 +75,10 @@ export class Program {
         );
 
         // TODO: Depends on the internal specifications of the reactively lib.
-        invariant(
-          destPort["fn"] != null,
-          `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
-        );
+        if (destPort["fn"] != null)
+          throw new Error(
+            `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
+          );
         destPort.set(() => srcPort.value);
       }
     }
@@ -82,7 +86,7 @@ export class Program {
 
   public run(inputSignals: Map<string, boolean>): Map<string, boolean> {
     for (const [name, value] of inputSignals.entries()) {
-      this.bitIns.get(name)?.set(value);
+      this.bitIns.get(name)?.set(() => value);
     }
 
     const outputSignals = new Map<string, boolean>();
