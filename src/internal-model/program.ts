@@ -1,7 +1,13 @@
 import { Program as ProgramAst } from "../parser/ast";
 import { Reactive } from "@reactively/core";
 import invariant from "tiny-invariant";
-import { BitinModule, BitoutModule, Module, NandModule } from "./module";
+import {
+  BitinModule,
+  BitoutModule,
+  createModule,
+  Module,
+  NandModule,
+} from "./module";
 import { Variable } from "./variable";
 
 export class Program {
@@ -80,6 +86,9 @@ export class Program {
             `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
           );
         destPort.set(() => srcPort.value);
+      } else if (statement.subtype.type === "moduleStatement") {
+        const Udm = createModule(statement.subtype, this.modules);
+        this.modules.push(new Udm());
       }
     }
   }

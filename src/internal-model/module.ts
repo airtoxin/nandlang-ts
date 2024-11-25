@@ -1,6 +1,8 @@
-import { reactive } from "@reactively/core";
+import { Reactive, reactive } from "@reactively/core";
 import { nand } from "./gate";
 import { Variable } from "./variable";
+import { Statement, SubStatement } from "../parser/ast";
+import invariant from "tiny-invariant";
 
 export abstract class Module {
   constructor(public readonly name: string) {}
@@ -69,3 +71,104 @@ export class FlipflopModule implements Module {
     );
   }
 }
+
+export const createModule = (
+  moduleStatement: Extract<SubStatement, { type: "moduleStatement" }>,
+  availableModules: Module[],
+): new () => Module => {
+  const C = class implements Module {
+    public readonly name = moduleStatement.name;
+
+    public createVariable(varName: string): Variable {
+      const variables: Variable[] = [];
+      const bitIns = new Map<string, Reactive<boolean>>();
+      const bitOuts = new Map<string, Reactive<boolean>>();
+      for (const statement of moduleStatement.definitionStatements) {
+        if (statement.subtype.type === "varStatement") {
+          const moduleName = statement.subtype.moduleName;
+          const module = availableModules.find((m) => m.name === moduleName);
+          invariant(
+            module,
+            `Can't find module definition ${moduleName} of variable ${statement.subtype.variableName}`,
+          );
+
+          const variable = module.createVariable(
+            statement.subtype.variableName,
+          );
+          variables.push(variable);
+
+          if (module instanceof BitinModule) {
+            const port = variable.outPorts.get("o0");
+            invariant(port, "Can't find port o0 of BITIN");
+            bitIns.set(variable.name, port);
+          } else if (module instanceof BitoutModule) {
+            const port = variable.inPorts.get("i0");
+            invariant(port, "Can't find port i0 of BITIN");
+            bitOuts.set(variable.name, port);
+          }
+        } else if (statement.subtype.type === "wireStatement") {
+          const {
+            srcVariableName,
+            srcPortName,
+            destVariableName,
+            destPortName,
+          } = statement.subtype;
+
+          const srcVar = variables.find((v) => v.name === srcVariableName);
+          invariant(
+            srcVar,
+            `wire source variable not found: ${srcVariableName}`,
+          );
+          if (srcPortName === "_" && srcVar.outPorts.size !== 1)
+            throw new Error(
+              `Can't determine src port name of variable:${srcVar.name}`,
+            );
+          const fixedSrcPortName =
+            srcPortName === "_"
+              ? srcVar.outPorts.entries().next().value?.[0]
+              : srcPortName;
+          invariant(fixedSrcPortName, `Can't find source port ${srcPortName}`);
+          const srcPort = srcVar.outPorts.get(fixedSrcPortName);
+          invariant(
+            srcPort,
+            `Unknown port name of variable:${fixedSrcPortName}`,
+          );
+
+          const destVar = variables.find((v) => v.name === destVariableName);
+          invariant(
+            destVar,
+            `wire destination variable not found: ${destVariableName}`,
+          );
+          if (destPortName === "_" && destVar.inPorts.size !== 1)
+            throw new Error(
+              `Can't determine dest port name of variable:${destVar.name}`,
+            );
+          const fixedDestPortName =
+            destPortName === "_"
+              ? destVar.inPorts.entries().next().value?.[0]
+              : destPortName;
+          invariant(
+            fixedDestPortName,
+            `Can't find source port ${destPortName}`,
+          );
+          const destPort = destVar.inPorts.get(fixedDestPortName);
+          invariant(
+            destPort,
+            `Unknown port name of variable:${fixedDestPortName}`,
+          );
+
+          // TODO: Depends on the internal specifications of the reactively lib.
+          if (destPort["fn"] != null)
+            throw new Error(
+              `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
+            );
+          destPort.set(() => srcPort.value);
+        }
+      }
+
+      return new Variable(varName, bitIns, bitOuts);
+    }
+  };
+  Object.defineProperty(C, "name", { value: moduleStatement.name });
+  return C;
+};

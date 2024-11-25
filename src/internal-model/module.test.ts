@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { FlipflopModule, NandModule } from "./module";
+import {
+  BitinModule,
+  BitoutModule,
+  createModule,
+  FlipflopModule,
+  NandModule,
+} from "./module";
+import { nand } from "./gate";
 
 describe("NandModule", () => {
   test("succeeds with nand conditions", () => {
@@ -56,5 +63,56 @@ describe("FlipflopModule", () => {
     ffVar.inPorts.get("s")!.set(true);
     ffVar.inPorts.get("r")!.set(true);
     expect(() => ffVar.outPorts.get("q")!.value).toThrowError();
+  });
+});
+
+describe("createModule", () => {
+  test("succeeds with custom module", () => {
+    const DynamicModule = createModule(
+      {
+        type: "moduleStatement",
+        name: "DYNAMIC_IO",
+        definitionStatements: [
+          {
+            type: "statement",
+            subtype: {
+              type: "varStatement",
+              variableName: "in",
+              moduleName: "BITIN",
+            },
+          },
+          {
+            type: "statement",
+            subtype: {
+              type: "varStatement",
+              variableName: "out",
+              moduleName: "BITOUT",
+            },
+          },
+          {
+            type: "statement",
+            subtype: {
+              type: "wireStatement",
+              srcVariableName: "in",
+              srcPortName: "_",
+              destVariableName: "out",
+              destPortName: "_",
+            },
+          },
+        ],
+      },
+      [new NandModule(), new BitinModule(), new BitoutModule()],
+    );
+    const dynamicModule = new DynamicModule();
+    expect(dynamicModule).toMatchInlineSnapshot(`
+      DYNAMIC_IO {
+        "name": "DYNAMIC_IO",
+      }
+    `);
+    const dyn = dynamicModule.createVariable("dyn");
+    dyn.inPorts.get("in")?.set(true);
+    expect(dyn.outPorts.get("out")?.value).toBe(true);
+    dyn.inPorts.get("in")?.set(false);
+    expect(dyn.outPorts.get("out")?.value).toBe(false);
   });
 });
