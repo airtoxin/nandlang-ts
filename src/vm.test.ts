@@ -94,40 +94,40 @@ describe("Vm", () => {
   test("succeeds with half addr", () => {
     const program = `
       MOD START AND
-          VAR i0 BITIN
-          VAR i1 BITIN
-          VAR nand NAND
-          WIRE i0 _ TO nand i0
-          WIRE i1 _ TO nand i1
-          VAR not NAND
-          WIRE nand _ TO not i0
-          WIRE nand _ TO not i1
-          VAR o0 BITOUT
-          WIRE not _ TO o0 _
+        VAR i0 BITIN
+        VAR i1 BITIN
+        VAR nand NAND
+        WIRE i0 _ TO nand i0
+        WIRE i1 _ TO nand i1
+        VAR not NAND
+        WIRE nand _ TO not i0
+        WIRE nand _ TO not i1
+        VAR o0 BITOUT
+        WIRE not _ TO o0 _
       MOD END
       
       MOD START XOR
-          VAR i0 BITIN
-          VAR i1 BITIN
-          
-          VAR nand0 NAND
-          WIRE i0 _ TO nand0 i0
-          WIRE i1 _ TO nand0 i1
-          
-          VAR nand1 NAND
-          WIRE i0 _ TO nand1 i0
-          WIRE nand0 _ TO nand1 i1
-          
-          VAR nand2 NAND
-          WIRE nand0 _ TO nand2 i0
-          WIRE i1 _ TO nand2 i1
-          
-          VAR nand3 NAND
-          WIRE nand1 _ TO nand3 i0
-          WIRE nand2 _ TO nand3 i1
-          
-          VAR o0 BITOUT
-          WIRE nand3 _ TO o0 _
+        VAR i0 BITIN
+        VAR i1 BITIN
+        
+        VAR nand0 NAND
+        WIRE i0 _ TO nand0 i0
+        WIRE i1 _ TO nand0 i1
+        
+        VAR nand1 NAND
+        WIRE i0 _ TO nand1 i0
+        WIRE nand0 _ TO nand1 i1
+        
+        VAR nand2 NAND
+        WIRE nand0 _ TO nand2 i0
+        WIRE i1 _ TO nand2 i1
+        
+        VAR nand3 NAND
+        WIRE nand1 _ TO nand3 i0
+        WIRE nand2 _ TO nand3 i1
+        
+        VAR o0 BITOUT
+        WIRE nand3 _ TO o0 _
       MOD END
       
       # HALF ADDER
