@@ -41,3 +41,31 @@ export class BitoutModule implements Module {
     return new Variable(varName, new Map([["i0", reactive(false)]]), new Map());
   }
 }
+
+export class FlipflopModule implements Module {
+  public readonly name = "FLIPFLOP";
+
+  public createVariable(varName: string): Variable {
+    const set = reactive(false);
+    const reset = reactive(false);
+    let state = false;
+    const q = reactive(() => {
+      if (set.value && reset.value) {
+        throw new Error(`FLIPFLOP got set and reset signal`);
+      } else if (set.value) {
+        state = true;
+      } else if (reset.value) {
+        state = false;
+      }
+      return state;
+    });
+    return new Variable(
+      varName,
+      new Map([
+        ["s", set],
+        ["r", reset],
+      ]),
+      new Map([["q", q]]),
+    );
+  }
+}
