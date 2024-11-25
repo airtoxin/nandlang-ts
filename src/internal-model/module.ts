@@ -1,7 +1,7 @@
 import { Reactive, reactive } from "@reactively/core";
 import { nand } from "./gate";
 import { Variable } from "./variable";
-import { Statement, SubStatement } from "../parser/ast";
+import { SubStatement } from "../parser/ast";
 import invariant from "tiny-invariant";
 
 export abstract class Module {
@@ -76,6 +76,7 @@ export const createModule = (
   moduleStatement: Extract<SubStatement, { type: "moduleStatement" }>,
   availableModules: Module[],
 ): new () => Module => {
+  const modules = [...availableModules];
   const C = class implements Module {
     public readonly name = moduleStatement.name;
 
@@ -86,7 +87,7 @@ export const createModule = (
       for (const statement of moduleStatement.definitionStatements) {
         if (statement.subtype.type === "varStatement") {
           const moduleName = statement.subtype.moduleName;
-          const module = availableModules.find((m) => m.name === moduleName);
+          const module = modules.find((m) => m.name === moduleName);
           invariant(
             module,
             `Can't find module definition ${moduleName} of variable ${statement.subtype.variableName}`,
@@ -163,6 +164,9 @@ export const createModule = (
               `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
             );
           destPort.set(() => srcPort.value);
+        } else if (statement.subtype.type === "moduleStatement") {
+          const Udm = createModule(statement.subtype, [...modules]);
+          modules.push(new Udm());
         }
       }
 
