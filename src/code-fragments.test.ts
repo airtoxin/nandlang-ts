@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AND, NOT, OR } from "./code-fragments";
+import { AND, NOR, NOT, OR, XNOR, XOR } from "./code-fragments";
 import { Vm } from "./vm";
 
 const getRunner = (program: string) => {
@@ -92,6 +92,118 @@ test("OR", () => {
       ["y", true],
     ]),
   ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", true],
+    ]),
+  ).toEqual([["out", true]]);
+});
+
+test("NOR", () => {
+  const runner = getRunner(`
+    ${NOR}
+    VAR x BITIN
+    VAR y BITIN
+    VAR out BITOUT
+    
+    VAR nor NOR
+    WIRE x _ TO nor i0
+    WIRE y _ TO nor i1
+    WIRE nor _ TO out _
+  `);
+  expect(
+    runner([
+      ["x", false],
+      ["y", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", false],
+    ]),
+  ).toEqual([["out", false]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", true],
+    ]),
+  ).toEqual([["out", false]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", true],
+    ]),
+  ).toEqual([["out", false]]);
+});
+
+test("XOR", () => {
+  const runner = getRunner(`
+    ${XOR}
+    VAR x BITIN
+    VAR y BITIN
+    VAR out BITOUT
+    VAR xor XOR
+    WIRE x _ TO xor i0
+    WIRE y _ TO xor i1
+    WIRE xor _ TO out _
+  `);
+  expect(
+    runner([
+      ["x", false],
+      ["y", false],
+    ]),
+  ).toEqual([["out", false]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", true],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", true],
+    ]),
+  ).toEqual([["out", false]]);
+});
+
+test("XNOR", () => {
+  const runner = getRunner(`
+    ${XNOR}
+    VAR x BITIN
+    VAR y BITIN
+    VAR out BITOUT
+    VAR xnor XNOR
+    WIRE x _ TO xnor i0
+    WIRE y _ TO xnor i1
+    WIRE xnor _ TO out _
+  `);
+  expect(
+    runner([
+      ["x", false],
+      ["y", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", false],
+    ]),
+  ).toEqual([["out", false]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", true],
+    ]),
+  ).toEqual([["out", false]]);
   expect(
     runner([
       ["x", true],

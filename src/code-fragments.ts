@@ -40,3 +40,55 @@ MOD START OR
   WIRE nand _ TO o0 _
 MOD END
 `;
+
+export const NOR = `\
+MOD START NOR
+  ${NOT}
+  ${OR}
+  VAR i0 BITIN
+  VAR i1 BITIN
+  VAR or OR
+  WIRE i0 _ TO or i0
+  WIRE i1 _ TO or i1
+  VAR not NOT
+  WIRE or _ TO not _
+  VAR o0 BITOUT
+  WIRE not _ TO o0 _
+MOD END
+`;
+
+export const XOR = `\
+MOD START XOR
+  ${OR}
+  ${AND}
+  VAR i0 BITIN
+  VAR i1 BITIN
+  VAR nand NAND
+  WIRE i0 _ TO nand i0
+  WIRE i1 _ TO nand i1
+  VAR or OR
+  WIRE i0 _ TO or i0
+  WIRE i1 _ TO or i1
+  VAR and AND
+  WIRE nand _ TO and i0
+  WIRE or _ TO and i1
+  VAR o0 BITOUT
+  WIRE and _ TO o0 _
+MOD END
+`;
+
+export const XNOR = `\
+MOD START XNOR
+  ${XOR}
+  ${NOT}
+  VAR i0 BITIN
+  VAR i1 BITIN
+  VAR xor XOR
+  WIRE i0 _ TO xor i0
+  WIRE i1 _ TO xor i1
+  VAR not NOT
+  WIRE xor _ TO not _
+  VAR o0 BITOUT
+  WIRE not _ TO o0 _
+MOD END
+`;
