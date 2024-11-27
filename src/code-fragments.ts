@@ -24,6 +24,23 @@ MOD START AND
 MOD END
 `;
 
+export const AND3 = `\
+MOD START AND3
+  ${AND}
+  VAR i0 BITIN
+  VAR i1 BITIN
+  VAR a0 AND
+  WIRE i0 _ TO a0 i0
+  WIRE i1 _ TO a0 i1
+  VAR i2 BITIN
+  VAR a1 AND
+  WIRE a0 _ TO a1 i0
+  WIRE i2 _ TO a1 i1
+  VAR o0 BITOUT
+  WIRE a1 _ TO o0 _
+MOD END
+`;
+
 export const OR = `\
 MOD START OR
   ${NOT}
