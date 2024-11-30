@@ -8,7 +8,7 @@ export class Vm {
     const parseResult = parseProgram([...programString]);
     if (!parseResult.success)
       throw new Error(
-        `Program parse error: ${parseResult.rest.slice(20).join("")}`,
+        `Program parse error, near ...${parseResult.rest.slice(0, 20).join("")}...`,
       );
 
     this.program = new Program(parseResult.data);
