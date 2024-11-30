@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { AND, AND3, NOR, NOT, OR, XNOR, XOR } from "./code-fragments";
+import { AND, AND3, NOR, NOT, OR, OR3, XNOR, XOR } from "./code-fragments";
 import { Vm } from "./vm";
 
 const getRunner = (program: string) => {
@@ -168,6 +168,78 @@ test("OR", () => {
     runner([
       ["x", true],
       ["y", true],
+    ]),
+  ).toEqual([["out", true]]);
+});
+
+test("OR3", () => {
+  const runner = getRunner(`
+    ${OR3}
+    VAR x BITIN
+    VAR y BITIN
+    VAR z BITIN
+    VAR out BITOUT
+    
+    VAR or3 OR3
+    WIRE x _ TO or3 i0
+    WIRE y _ TO or3 i1
+    WIRE z _ TO or3 i2
+    WIRE or3 _ TO out _
+  `);
+  expect(
+    runner([
+      ["x", false],
+      ["y", false],
+      ["z", false],
+    ]),
+  ).toEqual([["out", false]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", false],
+      ["z", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", true],
+      ["z", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", false],
+      ["z", true],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", true],
+      ["z", false],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", false],
+      ["z", true],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", false],
+      ["y", true],
+      ["z", true],
+    ]),
+  ).toEqual([["out", true]]);
+  expect(
+    runner([
+      ["x", true],
+      ["y", true],
+      ["z", true],
     ]),
   ).toEqual([["out", true]]);
 });
