@@ -8,6 +8,6 @@
     "format": "prettier --ignore-path .gitignore --write ."
   },
   "devDependencies": {
-    "prettier": "^3.3.3"
+    "prettier": "^3.8.1"
   }
 }
