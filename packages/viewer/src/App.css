@@ -169,6 +169,7 @@
   padding: 4px 8px;
   text-align: center;
   border: 1px solid #444;
+  min-width: 52px;
 }
 
 .test-case-panel th {
@@ -212,7 +213,7 @@
 .test-case-panel .row-header {
   text-align: right;
   padding: 4px 10px;
-  min-width: 80px;
+  min-width: 100px;
 }
 
 /* Column status coloring */
