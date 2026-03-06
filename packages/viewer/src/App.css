@@ -1,42 +1,151 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.app-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.code-editor-panel {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-right: 1px solid #444;
+  overflow-y: auto;
+}
+
+.code-editor-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.code-editor-panel .panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.code-editor-panel select {
+  padding: 4px 8px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.code-editor-panel textarea {
+  flex: 1;
+  font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: 1px solid #444;
+  border-radius: 6px;
+  resize: none;
+  tab-size: 2;
+  min-height: 200px;
+}
+
+.compile-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.compile-btn:hover {
+  background: #3a8eef;
+}
+
+.error-display {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #4a1a1a;
+  color: #ff6b6b;
+  border: 1px solid #ff4444;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.circuit-diagram-panel {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.truth-table-panel {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  border-top: 1px solid #444;
+  padding: 12px 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.truth-table-panel h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.truth-table-panel .warning {
+  color: #ffa94d;
+  font-size: 13px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.truth-table-panel table {
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.truth-table-panel th,
+.truth-table-panel td {
+  padding: 4px 12px;
   text-align: center;
+  border: 1px solid #444;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.truth-table-panel th {
+  background: #333;
+  font-weight: 600;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.truth-table-panel th.input-header {
+  color: #4a9eff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.truth-table-panel th.output-header {
+  color: #ff6b6b;
 }
 
-.card {
-  padding: 2em;
+.truth-table-panel th.separator,
+.truth-table-panel td.separator {
+  border: none;
+  width: 16px;
+  padding: 0;
 }
 
-.read-the-docs {
-  color: #888;
+.truth-table-panel tr.highlight {
+  background: #2a3a4a;
+}
+
+.truth-table-panel tr.highlight td {
+  font-weight: bold;
 }

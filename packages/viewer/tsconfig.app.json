@@ -22,7 +22,13 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@nandlang-ts/language/vm": ["./src/language.d.ts"],
+      "@nandlang-ts/language/parser/ast": ["./src/language.d.ts"],
+      "@nandlang-ts/language/parser/program": ["./src/language.d.ts"],
+      "@nandlang-ts/language/code-fragments": ["./src/language.d.ts"]
+    }
   },
   "include": ["src"]
 }
