@@ -6,7 +6,7 @@ import { CircuitDiagramPanel } from "./components/CircuitDiagramPanel";
 import { TruthTablePanel } from "./components/TruthTablePanel";
 import { useCircuit } from "./hooks/useCircuit";
 import { useTruthTable } from "./hooks/useTruthTable";
-import { examples } from "./utils/examples";
+import { examples } from "./lib/examples";
 import "./App.css";
 
 function App() {

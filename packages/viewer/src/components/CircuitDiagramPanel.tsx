@@ -14,7 +14,7 @@ import { BitoutNode } from "./nodes/BitoutNode";
 import { NandNode } from "./nodes/NandNode";
 import { FlipflopNode } from "./nodes/FlipflopNode";
 import { ModuleNode } from "./nodes/ModuleNode";
-import type { NodeData } from "../utils/astToGraph";
+import type { NodeData } from "../lib/astToGraph";
 
 const nodeTypes: NodeTypes = {
   bitinNode: BitinNode,

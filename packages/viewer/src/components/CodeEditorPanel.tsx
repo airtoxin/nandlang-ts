@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { examples } from "../utils/examples";
+import { examples } from "../lib/examples";
 
 type Props = {
   onCompile: (code: string) => void;

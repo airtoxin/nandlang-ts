@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import type { Node, Edge } from "@xyflow/react";
 import { program as parseProgram } from "@nandlang-ts/language/parser/program";
 import { Vm } from "@nandlang-ts/language/vm";
-import { astToGraph, type NodeData } from "../utils/astToGraph";
+import { astToGraph, type NodeData } from "../lib/astToGraph";
 
 export function useCircuit() {
   const [nodes, setNodes] = useState<Node<NodeData>[]>([]);

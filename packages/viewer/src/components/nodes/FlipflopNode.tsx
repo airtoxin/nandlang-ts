@@ -1,5 +1,5 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { NodeData } from "../../utils/astToGraph";
+import type { NodeData } from "../../lib/astToGraph";
 import "./nodeStyles.css";
 
 export function FlipflopNode({ data }: NodeProps & { data: NodeData }) {
