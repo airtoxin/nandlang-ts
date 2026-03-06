@@ -3,9 +3,9 @@ import { applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type { NodeChange, EdgeChange } from "@xyflow/react";
 import { CodeEditorPanel } from "./components/CodeEditorPanel";
 import { CircuitDiagramPanel } from "./components/CircuitDiagramPanel";
-import { TruthTablePanel } from "./components/TruthTablePanel";
+import { TestCasePanel } from "./components/TestCasePanel";
 import { useCircuit } from "./hooks/useCircuit";
-import { useTruthTable } from "./hooks/useTruthTable";
+import { useTestCases } from "./hooks/useTestCases";
 import { examples } from "./lib/examples";
 import "./App.css";
 
@@ -13,12 +13,19 @@ function App() {
   const circuit = useCircuit();
   const [compiledCode, setCompiledCode] = useState<string | null>(null);
 
+  const tc = useTestCases(
+    compiledCode,
+    circuit.inputNames,
+    circuit.outputNames,
+  );
+
   const handleCompile = useCallback(
     (code: string) => {
       circuit.compile(code);
       setCompiledCode(code);
+      tc.resetResults();
     },
-    [circuit],
+    [circuit, tc],
   );
 
   const onNodesChange = useCallback(
@@ -33,12 +40,6 @@ function App() {
       circuit.setEdges((eds) => applyEdgeChanges(changes, eds) as typeof eds);
     },
     [circuit],
-  );
-
-  const { rows, warning } = useTruthTable(
-    compiledCode,
-    circuit.inputNames,
-    circuit.outputNames,
   );
 
   // Auto-compile default example on mount
@@ -57,12 +58,15 @@ function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
       />
-      <TruthTablePanel
-        rows={rows}
+      <TestCasePanel
+        testCases={tc.testCases}
         inputNames={circuit.inputNames}
         outputNames={circuit.outputNames}
-        currentInputs={circuit.inputSignals}
-        warning={warning}
+        onAdd={tc.addTestCase}
+        onRemove={tc.removeTestCase}
+        onToggleInput={tc.toggleInput}
+        onToggleExpectedOutput={tc.toggleExpectedOutput}
+        onRunAll={tc.runAll}
       />
     </div>
   );
