@@ -1,0 +1,55 @@
+declare module "@nandlang-ts/language/vm" {
+  export class Vm {
+    compile(programString: string): void;
+    run(inputSignals: Map<string, boolean>): Map<string, boolean>;
+  }
+}
+
+declare module "@nandlang-ts/language/parser/ast" {
+  export type Program = {
+    type: "program";
+    statements: Statement[];
+  };
+
+  export type Statement = {
+    type: "statement";
+    subtype: SubStatement;
+  };
+
+  export type SubStatement =
+    | {
+        type: "moduleStatement";
+        name: string;
+        definitionStatements: Statement[];
+      }
+    | { type: "varStatement"; variableName: string; moduleName: string }
+    | {
+        type: "wireStatement";
+        srcVariableName: string;
+        srcPortName: string;
+        destVariableName: string;
+        destPortName: string;
+      };
+}
+
+declare module "@nandlang-ts/language/parser/program" {
+  import type { Program } from "@nandlang-ts/language/parser/ast";
+
+  type ParseResult<T> =
+    | { success: true; data: T; rest: string[] }
+    | { success: false; rest: string[] };
+
+  export const program: (inputs: string[]) => ParseResult<Program>;
+}
+
+declare module "@nandlang-ts/language/code-fragments" {
+  export const NOT: string;
+  export const AND: string;
+  export const AND3: string;
+  export const OR: string;
+  export const OR3: string;
+  export const NOR: string;
+  export const XOR: string;
+  export const XNOR: string;
+  export const DECODER_3BIT: string;
+}

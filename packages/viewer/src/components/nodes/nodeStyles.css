@@ -1,0 +1,58 @@
+.circuit-node {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid #555;
+  background: #2a2a2a;
+  color: #eee;
+  font-size: 12px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.circuit-node .node-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.circuit-node .node-type {
+  font-size: 10px;
+  color: #999;
+}
+
+.bitin-node {
+  border-color: #4a9eff;
+  cursor: pointer;
+  user-select: none;
+}
+
+.bitin-node.active {
+  background: #1a4a7a;
+  border-color: #6ab4ff;
+}
+
+.bitout-node {
+  border-color: #ff6b6b;
+}
+
+.bitout-node.active {
+  background: #4a1a1a;
+  border-color: #ff9999;
+  box-shadow: 0 0 12px rgba(255, 100, 100, 0.5);
+}
+
+.nand-node {
+  border-color: #ffa94d;
+}
+
+.flipflop-node {
+  border-color: #a855f7;
+}
+
+.module-node {
+  border-color: #22c55e;
+}
+
+.port-label {
+  font-size: 9px;
+  color: #aaa;
+}

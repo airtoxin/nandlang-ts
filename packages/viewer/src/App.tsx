@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useCallback, useEffect, useState } from "react";
+import { applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
+import type { NodeChange, EdgeChange } from "@xyflow/react";
+import { CodeEditorPanel } from "./components/CodeEditorPanel";
+import { CircuitDiagramPanel } from "./components/CircuitDiagramPanel";
+import { TruthTablePanel } from "./components/TruthTablePanel";
+import { useCircuit } from "./hooks/useCircuit";
+import { useTruthTable } from "./hooks/useTruthTable";
+import { examples } from "./utils/examples";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const circuit = useCircuit();
+  const [compiledCode, setCompiledCode] = useState<string | null>(null);
+
+  const handleCompile = useCallback(
+    (code: string) => {
+      circuit.compile(code);
+      setCompiledCode(code);
+    },
+    [circuit],
+  );
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      circuit.setNodes((nds) => applyNodeChanges(changes, nds) as typeof nds);
+    },
+    [circuit],
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      circuit.setEdges((eds) => applyEdgeChanges(changes, eds) as typeof eds);
+    },
+    [circuit],
+  );
+
+  const { rows, warning } = useTruthTable(
+    compiledCode,
+    circuit.inputNames,
+    circuit.outputNames,
+  );
+
+  // Auto-compile default example on mount
+  useEffect(() => {
+    handleCompile(examples[0].code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app-layout">
+      <CodeEditorPanel onCompile={handleCompile} error={circuit.error} />
+      <CircuitDiagramPanel
+        nodes={circuit.nodes}
+        edges={circuit.edges}
+        onNodeClick={circuit.toggleInput}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+      />
+      <TruthTablePanel
+        rows={rows}
+        inputNames={circuit.inputNames}
+        outputNames={circuit.outputNames}
+        currentInputs={circuit.inputSignals}
+        warning={warning}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
