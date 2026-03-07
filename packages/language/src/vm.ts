@@ -18,4 +18,9 @@ export class Vm {
     if (this.program == null) throw new Error(`No program compiled to run`);
     return this.program.run(inputSignals);
   }
+
+  public getAllSignals(): Map<string, boolean> {
+    if (this.program == null) throw new Error(`No program compiled`);
+    return this.program.getAllSignals();
+  }
 }

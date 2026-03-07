@@ -170,7 +170,7 @@ export const createModule = (
         }
       }
 
-      return new Variable(varName, bitIns, bitOuts);
+      return new Variable(varName, bitIns, bitOuts, variables);
     }
   };
   Object.defineProperty(C, "name", { value: moduleStatement.name });
