@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
+  useReactFlow,
   type Node,
   type Edge,
   type NodeTypes,
@@ -31,28 +34,43 @@ type Props = {
   onEdgesChange: OnEdgesChange;
 };
 
-export function CircuitDiagramPanel({
+function CircuitDiagramInner({
   nodes,
   edges,
   onNodesChange,
   onEdgesChange,
 }: Props) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    const timer = setTimeout(() => fitView(), 50);
+    return () => clearTimeout(timer);
+  }, [nodes, edges, fitView]);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      nodesConnectable={false}
+      edgesReconnectable={false}
+      proOptions={{ hideAttribution: true }}
+      fitView
+    >
+      <Background />
+      <Controls showInteractive={false} />
+    </ReactFlow>
+  );
+}
+
+export function CircuitDiagramPanel(props: Props) {
   return (
     <div className="circuit-diagram-panel">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodesConnectable={false}
-        edgesReconnectable={false}
-        proOptions={{ hideAttribution: true }}
-        fitView
-      >
-        <Background />
-        <Controls showInteractive={false} />
-      </ReactFlow>
+      <ReactFlowProvider>
+        <CircuitDiagramInner {...props} />
+      </ReactFlowProvider>
     </div>
   );
 }
