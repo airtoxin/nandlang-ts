@@ -152,6 +152,15 @@ export function astToGraph(ast: Program): {
   for (const edge of edges) {
     g.setEdge(edge.source, edge.target);
   }
+  // Add dummy edges from BITIN to BITOUT to ensure rank separation
+  // when no real edges exist (e.g. before user writes code)
+  for (const inName of inputNames) {
+    for (const outName of outputNames) {
+      if (!g.hasEdge(inName, outName)) {
+        g.setEdge(inName, outName);
+      }
+    }
+  }
 
   dagre.layout(g);
 
