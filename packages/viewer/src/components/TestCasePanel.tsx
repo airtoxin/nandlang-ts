@@ -4,11 +4,10 @@ type Props = {
   testCases: TestCase[];
   inputNames: string[];
   outputNames: string[];
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  onToggleInput: (index: number, name: string) => void;
-  onToggleExpectedOutput: (index: number, name: string) => void;
   onRunAll: () => void;
+  allPassed: boolean;
+  onNextLevel: () => void;
+  isLastLevel: boolean;
 };
 
 function StatusBadge({ status }: { status: TestCase["status"] }) {
@@ -17,22 +16,19 @@ function StatusBadge({ status }: { status: TestCase["status"] }) {
   return <span className="status-badge status-fail">FAIL</span>;
 }
 
-function BitButton({
+function BitValue({
   value,
-  onClick,
   className,
 }: {
   value: boolean;
-  onClick: () => void;
   className?: string;
 }) {
   return (
-    <button
-      className={`bit-button ${value ? "bit-on" : "bit-off"} ${className ?? ""}`}
-      onClick={onClick}
+    <span
+      className={`bit-value ${value ? "bit-on" : "bit-off"} ${className ?? ""}`}
     >
       {value ? "1" : "0"}
-    </button>
+    </span>
   );
 }
 
@@ -54,11 +50,10 @@ export function TestCasePanel({
   testCases,
   inputNames,
   outputNames,
-  onAdd,
-  onRemove,
-  onToggleInput,
-  onToggleExpectedOutput,
   onRunAll,
+  allPassed,
+  onNextLevel,
+  isLastLevel,
 }: Props) {
   if (inputNames.length === 0 && outputNames.length === 0) return null;
 
@@ -67,9 +62,6 @@ export function TestCasePanel({
       <div className="test-case-header">
         <h3>Test Cases</h3>
         <div className="test-case-actions">
-          <button className="action-btn add-btn" onClick={onAdd}>
-            + Add
-          </button>
           <button
             className="action-btn run-btn"
             onClick={onRunAll}
@@ -79,10 +71,18 @@ export function TestCasePanel({
           </button>
         </div>
       </div>
+      {allPassed && (
+        <div className="success-banner">
+          All tests passed!
+          {!isLastLevel && (
+            <button className="next-level-btn" onClick={onNextLevel}>
+              Next Level &rarr;
+            </button>
+          )}
+        </div>
+      )}
       {testCases.length === 0 ? (
-        <p className="empty-message">
-          Click "+ Add" to create a test case.
-        </p>
+        <p className="empty-message">No test cases.</p>
       ) : (
         <div className="table-wrapper">
           <table>
@@ -102,21 +102,11 @@ export function TestCasePanel({
                   <th className="row-header input-header">{name}</th>
                   {testCases.map((tc, i) => (
                     <td key={i} className={`test-col-${tc.status}`}>
-                      <BitButton
-                        value={tc.inputs.get(name) ?? false}
-                        onClick={() => onToggleInput(i, name)}
-                      />
+                      <BitValue value={tc.inputs.get(name) ?? false} />
                     </td>
                   ))}
                 </tr>
               ))}
-              {/* Separator row */}
-              <tr className="separator-row">
-                <th className="row-header separator"></th>
-                {testCases.map((_, i) => (
-                  <td key={i} className="separator"></td>
-                ))}
-              </tr>
               {/* Expected output rows */}
               {outputNames.map((name) => (
                 <tr key={`exp-${name}`}>
@@ -125,22 +115,14 @@ export function TestCasePanel({
                   </th>
                   {testCases.map((tc, i) => (
                     <td key={i} className={`test-col-${tc.status}`}>
-                      <BitButton
+                      <BitValue
                         value={tc.expectedOutputs.get(name) ?? false}
-                        onClick={() => onToggleExpectedOutput(i, name)}
                         className="expected-bit"
                       />
                     </td>
                   ))}
                 </tr>
               ))}
-              {/* Separator row */}
-              <tr className="separator-row">
-                <th className="row-header separator"></th>
-                {testCases.map((_, i) => (
-                  <td key={i} className="separator"></td>
-                ))}
-              </tr>
               {/* Actual output rows */}
               {outputNames.map((name) => (
                 <tr key={`act-${name}`}>
@@ -164,21 +146,6 @@ export function TestCasePanel({
                   ))}
                 </tr>
               ))}
-              {/* Remove row */}
-              <tr>
-                <th className="row-header"></th>
-                {testCases.map((_, i) => (
-                  <td key={i}>
-                    <button
-                      className="remove-btn"
-                      onClick={() => onRemove(i)}
-                      title="Remove"
-                    >
-                      x
-                    </button>
-                  </td>
-                ))}
-              </tr>
             </tbody>
           </table>
         </div>

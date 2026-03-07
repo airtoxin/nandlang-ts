@@ -1,3 +1,9 @@
+
+.circuit-node .react-flow__handle {
+  cursor: default;
+  pointer-events: none;
+}
+
 .circuit-node {
   padding: 10px 16px;
   border-radius: 8px;
@@ -21,8 +27,6 @@
 
 .bitin-node {
   border-color: #4a9eff;
-  cursor: pointer;
-  user-select: none;
 }
 
 .bitin-node.active {

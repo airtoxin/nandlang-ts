@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
+  useReactFlow,
   type Node,
   type Edge,
   type NodeTypes,
@@ -27,36 +30,47 @@ const nodeTypes: NodeTypes = {
 type Props = {
   nodes: Node<NodeData>[];
   edges: Edge[];
-  onNodeClick: (nodeId: string) => void;
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
 };
 
-export function CircuitDiagramPanel({
+function CircuitDiagramInner({
   nodes,
   edges,
-  onNodeClick,
   onNodesChange,
   onEdgesChange,
 }: Props) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    const timer = setTimeout(() => fitView(), 50);
+    return () => clearTimeout(timer);
+  }, [nodes, edges, fitView]);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      nodesConnectable={false}
+      edgesReconnectable={false}
+      proOptions={{ hideAttribution: true }}
+      fitView
+    >
+      <Background />
+      <Controls showInteractive={false} />
+    </ReactFlow>
+  );
+}
+
+export function CircuitDiagramPanel(props: Props) {
   return (
     <div className="circuit-diagram-panel">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={(_event, node) => {
-          if (node.data.moduleName === "BITIN") {
-            onNodeClick(node.id);
-          }
-        }}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        fitView
-      >
-        <Background />
-        <Controls />
-      </ReactFlow>
+      <ReactFlowProvider>
+        <CircuitDiagramInner {...props} />
+      </ReactFlowProvider>
     </div>
   );
 }
