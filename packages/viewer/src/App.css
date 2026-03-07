@@ -100,6 +100,17 @@
   grid-column: 2;
 }
 
+.react-flow__controls button {
+  background: #2a2a2a;
+  border-color: #555;
+  color: #eee;
+  fill: #eee;
+}
+
+.react-flow__controls button:hover {
+  background: #444;
+}
+
 /* Test Case Panel */
 .test-case-panel {
   grid-row: 2;

@@ -51,7 +51,7 @@ export function CircuitDiagramPanel({
         fitView
       >
         <Background />
-        <Controls />
+        <Controls showInteractive={false} />
       </ReactFlow>
     </div>
   );
