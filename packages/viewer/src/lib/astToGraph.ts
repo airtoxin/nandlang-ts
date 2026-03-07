@@ -1,5 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { Program, SubStatement } from "@nandlang-ts/language/parser/ast";
+import dagre from "dagre";
 
 type PortInfo = { inputs: string[]; outputs: string[] };
 
@@ -81,56 +82,29 @@ export function astToGraph(ast: Program): {
   // Track variable info for port resolution
   const varPorts = new Map<string, PortInfo>();
 
-  // Categorize vars for layout
-  const bitins: SubStatement[] = [];
-  const bitouts: SubStatement[] = [];
-  const others: SubStatement[] = [];
+  const NODE_WIDTH = 120;
+  const NODE_HEIGHT = 60;
 
+  // Create nodes for all vars (positions will be set by dagre)
   for (const st of subStatements) {
-    if (st.type === "varStatement") {
-      if (st.moduleName === "BITIN") bitins.push(st);
-      else if (st.moduleName === "BITOUT") bitouts.push(st);
-      else others.push(st);
-    }
-  }
-
-  const COL_X = [50, 350, 650];
-  const ROW_HEIGHT = 100;
-
-  // Create nodes for BITINs (left column)
-  bitins.forEach((st, i) => {
-    if (st.type !== "varStatement") return;
-    const ports = BUILTIN_PORTS.BITIN;
-    varPorts.set(st.variableName, ports);
-    inputNames.push(st.variableName);
-    nodes.push({
-      id: st.variableName,
-      type: "bitinNode",
-      position: { x: COL_X[0], y: i * ROW_HEIGHT + 50 },
-      data: {
-        label: st.variableName,
-        moduleName: "BITIN",
-        inputs: ports.inputs,
-        outputs: ports.outputs,
-      },
-    });
-  });
-
-  // Create nodes for middle column
-  others.forEach((st, i) => {
-    if (st.type !== "varStatement") return;
+    if (st.type !== "varStatement") continue;
     const ports = resolveModulePorts(st.moduleName, moduleDefs);
     varPorts.set(st.variableName, ports);
 
+    if (st.moduleName === "BITIN") inputNames.push(st.variableName);
+    if (st.moduleName === "BITOUT") outputNames.push(st.variableName);
+
     let nodeType: string;
-    if (st.moduleName === "NAND") nodeType = "nandNode";
+    if (st.moduleName === "BITIN") nodeType = "bitinNode";
+    else if (st.moduleName === "BITOUT") nodeType = "bitoutNode";
+    else if (st.moduleName === "NAND") nodeType = "nandNode";
     else if (st.moduleName === "FLIPFLOP") nodeType = "flipflopNode";
     else nodeType = "moduleNode";
 
     nodes.push({
       id: st.variableName,
       type: nodeType,
-      position: { x: COL_X[1], y: i * ROW_HEIGHT + 50 },
+      position: { x: 0, y: 0 },
       data: {
         label: st.variableName,
         moduleName: st.moduleName,
@@ -138,26 +112,7 @@ export function astToGraph(ast: Program): {
         outputs: ports.outputs,
       },
     });
-  });
-
-  // Create nodes for BITOUTs (right column)
-  bitouts.forEach((st, i) => {
-    if (st.type !== "varStatement") return;
-    const ports = BUILTIN_PORTS.BITOUT;
-    varPorts.set(st.variableName, ports);
-    outputNames.push(st.variableName);
-    nodes.push({
-      id: st.variableName,
-      type: "bitoutNode",
-      position: { x: COL_X[2], y: i * ROW_HEIGHT + 50 },
-      data: {
-        label: st.variableName,
-        moduleName: "BITOUT",
-        inputs: ports.inputs,
-        outputs: ports.outputs,
-      },
-    });
-  });
+  }
 
   // Create edges from wire statements
   for (const st of subStatements) {
@@ -184,6 +139,25 @@ export function astToGraph(ast: Program): {
       targetHandle: destHandle,
       animated: true,
     });
+  }
+
+  // Apply dagre layout
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({ rankdir: "LR", nodesep: 50, ranksep: 100 });
+  g.setDefaultEdgeLabel(() => ({}));
+
+  for (const node of nodes) {
+    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+  }
+  for (const edge of edges) {
+    g.setEdge(edge.source, edge.target);
+  }
+
+  dagre.layout(g);
+
+  for (const node of nodes) {
+    const pos = g.node(node.id);
+    node.position = { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 };
   }
 
   return { nodes, edges, inputNames, outputNames };
