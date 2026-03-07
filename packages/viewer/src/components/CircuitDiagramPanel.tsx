@@ -45,7 +45,6 @@ export function CircuitDiagramPanel({
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        nodesDraggable={false}
         nodesConnectable={false}
         edgesReconnectable={false}
         proOptions={{ hideAttribution: true }}
