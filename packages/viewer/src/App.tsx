@@ -15,7 +15,7 @@ function App() {
   const [currentLevel, setCurrentLevel] = useState(0);
   const currentPuzzle = puzzles[currentLevel];
 
-  const tc = useTestCases(compiledCode);
+  const tc = useTestCases(compiledCode, circuit.updateNodeSignals);
 
   const handleCompile = useCallback(
     (code: string) => {
@@ -81,6 +81,7 @@ function App() {
         inputNames={currentPuzzle.inputNames}
         outputNames={currentPuzzle.outputNames}
         onRunAll={tc.runAll}
+        onRunNext={tc.runNext}
         allPassed={tc.allPassed}
         onNextLevel={handleNextLevel}
         isLastLevel={currentLevel >= puzzles.length - 1}

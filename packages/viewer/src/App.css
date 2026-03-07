@@ -158,6 +158,16 @@
   cursor: default;
 }
 
+.step-btn {
+  background: #2d4a6a;
+  border-color: #3a6a9a;
+  color: #7db8ff;
+}
+
+.step-btn:hover:not(:disabled) {
+  background: #3a6a9a;
+}
+
 .run-btn {
   background: #2d6a30;
   border-color: #3a8a3e;

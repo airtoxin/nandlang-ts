@@ -5,6 +5,7 @@ type Props = {
   inputNames: string[];
   outputNames: string[];
   onRunAll: () => void;
+  onRunNext: () => void;
   allPassed: boolean;
   onNextLevel: () => void;
   isLastLevel: boolean;
@@ -51,6 +52,7 @@ export function TestCasePanel({
   inputNames,
   outputNames,
   onRunAll,
+  onRunNext,
   allPassed,
   onNextLevel,
   isLastLevel,
@@ -62,6 +64,13 @@ export function TestCasePanel({
       <div className="test-case-header">
         <h3>Test Cases</h3>
         <div className="test-case-actions">
+          <button
+            className="action-btn step-btn"
+            onClick={onRunNext}
+            disabled={testCases.length === 0}
+          >
+            Step
+          </button>
           <button
             className="action-btn run-btn"
             onClick={onRunAll}

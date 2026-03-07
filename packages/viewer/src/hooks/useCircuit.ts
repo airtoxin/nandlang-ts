@@ -103,6 +103,29 @@ export function useCircuit() {
     [],
   );
 
+  const updateNodeSignals = useCallback(
+    (inputs: Map<string, boolean>, outputs: Map<string, boolean>) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => {
+          if (node.data.moduleName === "BITIN") {
+            return {
+              ...node,
+              data: { ...node.data, value: inputs.get(node.id) ?? false },
+            };
+          }
+          if (node.data.moduleName === "BITOUT") {
+            return {
+              ...node,
+              data: { ...node.data, value: outputs.get(node.id) ?? false },
+            };
+          }
+          return node;
+        }),
+      );
+    },
+    [],
+  );
+
   return {
     nodes,
     edges,
@@ -113,6 +136,7 @@ export function useCircuit() {
     error,
     compile,
     toggleInput,
+    updateNodeSignals,
     setNodes,
     setEdges,
   };
