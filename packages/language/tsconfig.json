@@ -3,17 +3,13 @@
     "target": "es2016",
     "lib": ["ES2023"],
     "module": "commonjs",
-    "rootDir": "src",
     "resolveJsonModule": true,
-    "outDir": "lib",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true
+    "noEmit": true
   },
   "include": ["src"]
 }
