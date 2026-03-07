@@ -8,11 +8,13 @@ type Props = {
 };
 
 export function CodeEditorPanel({ onCompile, error, puzzle }: Props) {
-  const [code, setCode] = useState(puzzle.starterCode);
+  const [code, setCode] = useState(puzzle.editableCode);
 
   useEffect(() => {
-    setCode(puzzle.starterCode);
+    setCode(puzzle.editableCode);
   }, [puzzle]);
+
+  const fullCode = `${puzzle.fixedCode}\n${code}`;
 
   return (
     <div className="code-editor-panel">
@@ -20,12 +22,13 @@ export function CodeEditorPanel({ onCompile, error, puzzle }: Props) {
         <h3>{puzzle.title}</h3>
       </div>
       <div className="puzzle-description">{puzzle.description}</div>
+      <pre className="fixed-code">{puzzle.fixedCode}</pre>
       <textarea
         value={code}
         onChange={(e) => setCode(e.target.value)}
         spellCheck={false}
       />
-      <button className="compile-btn" onClick={() => onCompile(code)}>
+      <button className="compile-btn" onClick={() => onCompile(fullCode)}>
         Compile & Run
       </button>
       {error && <div className="error-display">{error}</div>}

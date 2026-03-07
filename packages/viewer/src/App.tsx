@@ -31,7 +31,7 @@ function App() {
       setCurrentLevel(level);
       const puzzle = puzzles[level];
       tc.loadTestCases(puzzle.testCases);
-      handleCompile(puzzle.starterCode);
+      handleCompile(`${puzzle.fixedCode}\n${puzzle.editableCode}`);
     },
     [tc, handleCompile],
   );
@@ -59,7 +59,7 @@ function App() {
   // Auto-load first puzzle on mount
   useEffect(() => {
     tc.loadTestCases(currentPuzzle.testCases);
-    handleCompile(currentPuzzle.starterCode);
+    handleCompile(`${currentPuzzle.fixedCode}\n${currentPuzzle.editableCode}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

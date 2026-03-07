@@ -38,6 +38,20 @@
   font-size: 13px;
 }
 
+.fixed-code {
+  margin: 0;
+  padding: 8px 12px;
+  background: #1a1a1a;
+  color: #888;
+  border: 1px solid #444;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
 .code-editor-panel textarea {
   flex: 1;
   font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
@@ -47,7 +61,7 @@
   background: #1e1e1e;
   color: #d4d4d4;
   border: 1px solid #444;
-  border-radius: 6px;
+  border-radius: 0 0 6px 6px;
   resize: none;
   tab-size: 2;
   min-height: 200px;
@@ -189,20 +203,6 @@
 
 .test-case-panel th.actual-header {
   color: #ff6b6b;
-}
-
-.test-case-panel th.separator,
-.test-case-panel td.separator {
-  border: none;
-  height: 8px;
-  padding: 0;
-}
-
-.test-case-panel .separator-row th,
-.test-case-panel .separator-row td {
-  border: none;
-  height: 8px;
-  padding: 0;
 }
 
 .test-case-panel .row-header {

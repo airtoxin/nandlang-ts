@@ -10,7 +10,8 @@ export type Puzzle = {
   inputNames: string[];
   outputNames: string[];
   testCases: PuzzleTestCase[];
-  starterCode: string;
+  fixedCode: string;
+  editableCode: string;
 };
 
 function tc(
@@ -35,9 +36,9 @@ export const puzzles: Puzzle[] = [
       tc({ a: false }, { out: true }),
       tc({ a: true }, { out: false }),
     ],
-    starterCode: `VAR a BITIN
-# NANDゲートを使って回路を組み立ててください
-VAR out BITOUT
+    fixedCode: `VAR a BITIN
+VAR out BITOUT`,
+    editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
   {
@@ -53,10 +54,10 @@ VAR out BITOUT
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    starterCode: `VAR a BITIN
+    fixedCode: `VAR a BITIN
 VAR b BITIN
-# NANDゲートを使って回路を組み立ててください
-VAR out BITOUT
+VAR out BITOUT`,
+    editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
   {
@@ -72,10 +73,10 @@ VAR out BITOUT
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    starterCode: `VAR a BITIN
+    fixedCode: `VAR a BITIN
 VAR b BITIN
-# NANDゲートを使って回路を組み立ててください
-VAR out BITOUT
+VAR out BITOUT`,
+    editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
   {
@@ -91,10 +92,10 @@ VAR out BITOUT
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    starterCode: `VAR a BITIN
+    fixedCode: `VAR a BITIN
 VAR b BITIN
-# NANDゲートを使って回路を組み立ててください
-VAR out BITOUT
+VAR out BITOUT`,
+    editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
   {
@@ -110,10 +111,10 @@ VAR out BITOUT
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    starterCode: `VAR a BITIN
+    fixedCode: `VAR a BITIN
 VAR b BITIN
-# NANDゲートを使って回路を組み立ててください
-VAR out BITOUT
+VAR out BITOUT`,
+    editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
 ];

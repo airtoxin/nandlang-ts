@@ -107,13 +107,6 @@ export function TestCasePanel({
                   ))}
                 </tr>
               ))}
-              {/* Separator row */}
-              <tr className="separator-row">
-                <th className="row-header separator"></th>
-                {testCases.map((_, i) => (
-                  <td key={i} className="separator"></td>
-                ))}
-              </tr>
               {/* Expected output rows */}
               {outputNames.map((name) => (
                 <tr key={`exp-${name}`}>
@@ -130,13 +123,6 @@ export function TestCasePanel({
                   ))}
                 </tr>
               ))}
-              {/* Separator row */}
-              <tr className="separator-row">
-                <th className="row-header separator"></th>
-                {testCases.map((_, i) => (
-                  <td key={i} className="separator"></td>
-                ))}
-              </tr>
               {/* Actual output rows */}
               {outputNames.map((name) => (
                 <tr key={`act-${name}`}>
