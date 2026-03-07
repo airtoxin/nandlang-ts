@@ -9,13 +9,13 @@ MOD START AND
     VAR i0 BITIN
     VAR i1 BITIN
     VAR nand NAND
-    FROM i0 _ TO nand i0
-    FROM i1 _ TO nand i1
+    WIRE i0 _ TO nand i0
+    WIRE i1 _ TO nand i1
     VAR not NAND
-    FROM nand _ TO not i0
-    FROM nand _ TO not i1
+    WIRE nand _ TO not i0
+    WIRE nand _ TO not i1
     VAR o0 BITOUT
-    FROM not _ TO o0 _
+    WIRE not _ TO o0 _
 MOD END
 
 MOD START XOR
@@ -23,23 +23,23 @@ MOD START XOR
     VAR i1 BITIN
     
     VAR nand0 NAND
-    FROM i0 _ TO nand0 i0
-    FROM i1 _ TO nand0 i1
+    WIRE i0 _ TO nand0 i0
+    WIRE i1 _ TO nand0 i1
     
     VAR nand1 NAND
-    FROM i0 _ TO nand1 i0
-    FROM nand0 _ TO nand1 i1
+    WIRE i0 _ TO nand1 i0
+    WIRE nand0 _ TO nand1 i1
     
     VAR nand2 NAND
-    FROM nand0 _ TO nand2 i0
-    FROM i1 _ TO nand2 i1
+    WIRE nand0 _ TO nand2 i0
+    WIRE i1 _ TO nand2 i1
     
     VAR nand3 NAND
-    FROM nand1 _ TO nand3 i0
-    FROM nand2 _ TO nand3 i1
+    WIRE nand1 _ TO nand3 i0
+    WIRE nand2 _ TO nand3 i1
     
     VAR o0 BITOUT
-    FROM nand3 _ TO o0 _
+    WIRE nand3 _ TO o0 _
 MOD END
 
 # HALF ADDER
@@ -50,15 +50,15 @@ VAR and AND
 
 # SUM
 VAR sum BITOUT
-FROM a _ TO xor i0
-FROM b _ TO xor i1
-FROM xor _ TO sum _
+WIRE a _ TO xor i0
+WIRE b _ TO xor i1
+WIRE xor _ TO sum _
 
 # CARRY
 VAR car BITOUT
-FROM a _ TO and i0
-FROM b _ TO and i1
-FROM and _ TO car _
+WIRE a _ TO and i0
+WIRE b _ TO and i1
+WIRE and _ TO car _
 ```
 
 ## Basic
@@ -159,10 +159,10 @@ Variables defined using `VAR` can be connected to each other. A single line can 
 specified port on a source module and a specified port on a destination module.
 
 ```
-FROM [src_var] [src_port] TO [dest_var] [dest_port]
+WIRE [src_var] [src_port] TO [dest_var] [dest_port]
 ```
 
-`FROM`: Reserved keyword to define the source of a wire.
+`WIRE`: Reserved keyword to define a wire connection.
 
 `[src_var]`: Name of the source variable.
 
@@ -177,9 +177,9 @@ FROM [src_var] [src_port] TO [dest_var] [dest_port]
 **Example Usage**
 
 ```
-FROM in o0 TO my_nand i0
-FROM in o0 TO my_nand i1
-FROM my_nand o0 TO my_module in
+WIRE in o0 TO my_nand i0
+WIRE in o0 TO my_nand i1
+WIRE my_nand o0 TO my_module in
 ```
 
 ### Define module
@@ -219,9 +219,9 @@ MOD START NOT
     VAR in BITIN
     VAR out BITOUT
     VAR nand NAND
-    FROM in o0 TO nand i0
-    FROM in o0 TO nand i1
-    FROM nand o0 TO out i0
+    WIRE in o0 TO nand i0
+    WIRE in o0 TO nand i1
+    WIRE nand o0 TO out i0
 MOD END
 ```
 
