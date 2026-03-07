@@ -9,7 +9,11 @@ export type TestCase = {
   status: "idle" | "pass" | "fail";
 };
 
-type OnTestRun = (inputs: Map<string, boolean>, outputs: Map<string, boolean>) => void;
+type OnTestRun = (
+  inputs: Map<string, boolean>,
+  outputs: Map<string, boolean>,
+  allSignals: Map<string, boolean>,
+) => void;
 
 export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
@@ -51,7 +55,7 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
       const result = [...prev];
       result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
 
-      onTestRunRef.current?.(tc.inputs, actualOutputs);
+      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
 
       if (pass && idx + 1 < prev.length) {
         runIndexRef.current = idx + 1;
@@ -137,7 +141,7 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
       const result = [...prev];
       result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
 
-      onTestRunRef.current?.(tc.inputs, actualOutputs);
+      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
 
       if (pass && idx + 1 < prev.length) {
         stepIndexRef.current = idx + 1;

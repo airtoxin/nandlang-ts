@@ -2,6 +2,7 @@ declare module "@nandlang-ts/language/vm" {
   export class Vm {
     compile(programString: string): void;
     run(inputSignals: Map<string, boolean>): Map<string, boolean>;
+    getAllSignals(): Map<string, boolean>;
   }
 }
 

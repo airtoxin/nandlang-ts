@@ -104,7 +104,11 @@ export function useCircuit() {
   );
 
   const updateNodeSignals = useCallback(
-    (inputs: Map<string, boolean>, outputs: Map<string, boolean>) => {
+    (
+      inputs: Map<string, boolean>,
+      outputs: Map<string, boolean>,
+      allSignals: Map<string, boolean>,
+    ) => {
       setNodes((prevNodes) =>
         prevNodes.map((node) => {
           if (node.data.moduleName === "BITIN") {
@@ -120,6 +124,18 @@ export function useCircuit() {
             };
           }
           return node;
+        }),
+      );
+      setEdges((prevEdges) =>
+        prevEdges.map((edge) => {
+          const key = `${edge.source}.${edge.sourceHandle}`;
+          const signal = allSignals.get(key);
+          if (signal === undefined) return edge;
+          return {
+            ...edge,
+            label: signal ? "1" : "0",
+            style: { stroke: signal ? "#4a9eff" : "#555" },
+          };
         }),
       );
     },
