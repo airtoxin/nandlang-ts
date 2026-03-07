@@ -117,4 +117,31 @@ VAR out BITOUT`,
     editableCode: `# NANDゲートを使って回路を組み立ててください
 `,
   },
+  {
+    id: 6,
+    title: "Lv6: SR Latch",
+    description:
+      "FLIPFLOPを使ってSRラッチを作ってください。\nsが1のときqを1にセット、rが1のときqを0にリセットします。\nどちらも0のときは前の状態を保持します。\n(テストは順番に実行され、状態が引き継がれます)",
+    inputNames: ["s", "r"],
+    outputNames: ["q"],
+    testCases: [
+      // Initial state: q=0
+      tc({ s: false, r: false }, { q: false }),
+      // Set: q becomes 1
+      tc({ s: true, r: false }, { q: true }),
+      // Hold: q stays 1
+      tc({ s: false, r: false }, { q: true }),
+      // Reset: q becomes 0
+      tc({ s: false, r: true }, { q: false }),
+      // Hold: q stays 0
+      tc({ s: false, r: false }, { q: false }),
+      // Set again: q becomes 1
+      tc({ s: true, r: false }, { q: true }),
+    ],
+    fixedCode: `VAR s BITIN
+VAR r BITIN
+VAR q BITOUT`,
+    editableCode: `# FLIPFLOPを使って回路を組み立ててください
+`,
+  },
 ];

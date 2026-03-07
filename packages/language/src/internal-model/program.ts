@@ -1,5 +1,5 @@
 import { Program as ProgramAst } from "../parser/ast";
-import { BitinModule, BitoutModule, createModule, NandModule } from "./module";
+import { BitinModule, BitoutModule, createModule, FlipflopModule, NandModule } from "./module";
 import { Variable } from "./variable";
 
 export class Program {
@@ -12,7 +12,7 @@ export class Program {
         name: "Program",
         definitionStatements: this.programAst.statements,
       },
-      [new NandModule(), new BitinModule(), new BitoutModule()],
+      [new NandModule(), new BitinModule(), new BitoutModule(), new FlipflopModule()],
     );
     this.variable = new ProgramModule().createVariable("PROGRAM");
   }
