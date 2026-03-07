@@ -48,6 +48,7 @@ export function CircuitDiagramPanel({
         nodesDraggable={false}
         nodesConnectable={false}
         edgesReconnectable={false}
+        proOptions={{ hideAttribution: true }}
         fitView
       >
         <Background />
