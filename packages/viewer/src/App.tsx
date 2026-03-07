@@ -73,7 +73,6 @@ function App() {
       <CircuitDiagramPanel
         nodes={circuit.nodes}
         edges={circuit.edges}
-        onNodeClick={circuit.toggleInput}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
       />

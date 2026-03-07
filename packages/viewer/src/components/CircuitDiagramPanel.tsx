@@ -27,7 +27,6 @@ const nodeTypes: NodeTypes = {
 type Props = {
   nodes: Node<NodeData>[];
   edges: Edge[];
-  onNodeClick: (nodeId: string) => void;
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
 };
@@ -35,7 +34,6 @@ type Props = {
 export function CircuitDiagramPanel({
   nodes,
   edges,
-  onNodeClick,
   onNodesChange,
   onEdgesChange,
 }: Props) {
@@ -45,13 +43,11 @@ export function CircuitDiagramPanel({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodeClick={(_event, node) => {
-          if (node.data.moduleName === "BITIN") {
-            onNodeClick(node.id);
-          }
-        }}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        edgesReconnectable={false}
         fitView
       >
         <Background />
