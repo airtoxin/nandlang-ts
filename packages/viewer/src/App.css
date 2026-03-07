@@ -133,11 +133,6 @@
   cursor: default;
 }
 
-.add-btn {
-  border-color: #4a9eff;
-  color: #4a9eff;
-}
-
 .run-btn {
   background: #2d6a30;
   border-color: #3a8a3e;
@@ -247,31 +242,22 @@
   background: #3a1a1a;
 }
 
-/* Bit button (clickable input/expected toggle) */
-.bit-button {
-  width: 28px;
-  height: 24px;
-  border: 1px solid #555;
-  border-radius: 3px;
+/* Bit value (read-only input/expected display) */
+.bit-value {
   font-family: monospace;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.1s;
 }
 
-.bit-button.bit-off {
-  background: #2a2a2a;
+.bit-value.bit-off {
   color: #888;
 }
 
-.bit-button.bit-on {
-  background: #2a3a4a;
+.bit-value.bit-on {
   color: #4a9eff;
 }
 
-.bit-button.expected-bit.bit-on {
-  background: #3a3020;
+.bit-value.expected-bit.bit-on {
   color: #ffa94d;
 }
 
@@ -289,18 +275,44 @@
   text-decoration: underline;
 }
 
-/* Remove button */
-.remove-btn {
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 3px;
+/* Puzzle description */
+.puzzle-description {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #ccc;
+  white-space: pre-line;
 }
 
-.remove-btn:hover {
-  color: #ff6b6b;
-  background: #3a1a1a;
+/* Success banner */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  background: #1a3a1a;
+  border: 1px solid #3a8a3e;
+  border-radius: 6px;
+  color: #7dff82;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.next-level-btn {
+  padding: 6px 16px;
+  background: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.next-level-btn:hover {
+  background: #3a8eef;
 }

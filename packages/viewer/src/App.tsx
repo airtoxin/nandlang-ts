@@ -6,18 +6,16 @@ import { CircuitDiagramPanel } from "./components/CircuitDiagramPanel";
 import { TestCasePanel } from "./components/TestCasePanel";
 import { useCircuit } from "./hooks/useCircuit";
 import { useTestCases } from "./hooks/useTestCases";
-import { examples } from "./lib/examples";
+import { puzzles } from "./lib/puzzles";
 import "./App.css";
 
 function App() {
   const circuit = useCircuit();
   const [compiledCode, setCompiledCode] = useState<string | null>(null);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const currentPuzzle = puzzles[currentLevel];
 
-  const tc = useTestCases(
-    compiledCode,
-    circuit.inputNames,
-    circuit.outputNames,
-  );
+  const tc = useTestCases(compiledCode);
 
   const handleCompile = useCallback(
     (code: string) => {
@@ -27,6 +25,22 @@ function App() {
     },
     [circuit, tc],
   );
+
+  const handleLevelChange = useCallback(
+    (level: number) => {
+      setCurrentLevel(level);
+      const puzzle = puzzles[level];
+      tc.loadTestCases(puzzle.testCases);
+      handleCompile(puzzle.starterCode);
+    },
+    [tc, handleCompile],
+  );
+
+  const handleNextLevel = useCallback(() => {
+    if (currentLevel < puzzles.length - 1) {
+      handleLevelChange(currentLevel + 1);
+    }
+  }, [currentLevel, handleLevelChange]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -42,15 +56,20 @@ function App() {
     [circuit],
   );
 
-  // Auto-compile default example on mount
+  // Auto-load first puzzle on mount
   useEffect(() => {
-    handleCompile(examples[0].code);
+    tc.loadTestCases(currentPuzzle.testCases);
+    handleCompile(currentPuzzle.starterCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="app-layout">
-      <CodeEditorPanel onCompile={handleCompile} error={circuit.error} />
+      <CodeEditorPanel
+        onCompile={handleCompile}
+        error={circuit.error}
+        puzzle={currentPuzzle}
+      />
       <CircuitDiagramPanel
         nodes={circuit.nodes}
         edges={circuit.edges}
@@ -60,13 +79,12 @@ function App() {
       />
       <TestCasePanel
         testCases={tc.testCases}
-        inputNames={circuit.inputNames}
-        outputNames={circuit.outputNames}
-        onAdd={tc.addTestCase}
-        onRemove={tc.removeTestCase}
-        onToggleInput={tc.toggleInput}
-        onToggleExpectedOutput={tc.toggleExpectedOutput}
+        inputNames={currentPuzzle.inputNames}
+        outputNames={currentPuzzle.outputNames}
         onRunAll={tc.runAll}
+        allPassed={tc.allPassed}
+        onNextLevel={handleNextLevel}
+        isLastLevel={currentLevel >= puzzles.length - 1}
       />
     </div>
   );
