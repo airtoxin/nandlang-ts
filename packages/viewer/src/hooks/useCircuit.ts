@@ -133,8 +133,11 @@ export function useCircuit() {
           if (signal === undefined) return edge;
           return {
             ...edge,
-            label: signal ? "1" : "0",
-            style: { stroke: signal ? "#4a9eff" : "#555" },
+            style: {
+              stroke: signal ? "#4a9eff" : "#555",
+              strokeWidth: signal ? 2.5 : 1.5,
+              strokeDasharray: signal ? "none" : "5 3",
+            },
           };
         }),
       );
