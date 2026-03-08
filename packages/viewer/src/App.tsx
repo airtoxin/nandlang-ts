@@ -13,6 +13,7 @@ function App() {
   const circuit = useCircuit();
   const [compiledCode, setCompiledCode] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState(0);
+  const [fitViewTrigger, setFitViewTrigger] = useState(0);
   const currentPuzzle = puzzles[currentLevel];
 
   const tc = useTestCases(compiledCode, circuit.updateNodeSignals);
@@ -21,6 +22,7 @@ function App() {
     (code: string) => {
       circuit.compile(code);
       setCompiledCode(code);
+      setFitViewTrigger((c) => c + 1);
       tc.resetResults();
     },
     [circuit, tc],
@@ -75,6 +77,7 @@ function App() {
         edges={circuit.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        fitViewTrigger={fitViewTrigger}
       />
       <TestCasePanel
         testCases={tc.testCases}
