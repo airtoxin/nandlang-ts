@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { TitlePage } from "./pages/TitlePage";
+import { LevelSelectPage } from "./pages/LevelSelectPage";
 import { LevelPage } from "./pages/LevelPage";
 import "./App.css";
 
@@ -14,7 +15,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TitlePage />} />
-        <Route path="/levels" element={<Navigate to="/level/1" replace />} />
+        <Route path="/levels" element={<LevelSelectPage />} />
         <Route path="/level/:id" element={<LevelPageWrapper />} />
         <Route path="/sandbox" element={<Navigate to="/level/1" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
