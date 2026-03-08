@@ -123,6 +123,12 @@ export function useCircuit() {
               data: { ...node.data, value: outputs.get(node.id) ?? false },
             };
           }
+          if (node.data.moduleName === "FLIPFLOP") {
+            const q = allSignals.get(`${node.id}.q`);
+            if (q !== undefined) {
+              return { ...node, data: { ...node.data, value: q } };
+            }
+          }
           return node;
         }),
       );
