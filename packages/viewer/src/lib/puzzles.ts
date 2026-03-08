@@ -38,7 +38,10 @@ export const puzzles: Puzzle[] = [
     ],
     fixedCode: `VAR a BITIN
 VAR out BITOUT`,
-    editableCode: `# NANDゲートを使って回路を組み立ててください
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE a _ TO nand i1
+WIRE nand _ TO out _
 `,
   },
   {
@@ -57,7 +60,13 @@ VAR out BITOUT`,
     fixedCode: `VAR a BITIN
 VAR b BITIN
 VAR out BITOUT`,
-    editableCode: `# NANDゲートを使って回路を組み立ててください
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+VAR n2 NAND
+WIRE nand _ TO n2 i0
+WIRE nand _ TO n2 i1
+WIRE n2 _ TO out _
 `,
   },
   {
@@ -76,7 +85,16 @@ VAR out BITOUT`,
     fixedCode: `VAR a BITIN
 VAR b BITIN
 VAR out BITOUT`,
-    editableCode: `# NANDゲートを使って回路を組み立ててください
+    editableCode: `VAR na NAND
+WIRE a _ TO na i0
+WIRE a _ TO na i1
+VAR nb NAND
+WIRE b _ TO nb i0
+WIRE b _ TO nb i1
+VAR nand NAND
+WIRE na _ TO nand i0
+WIRE nb _ TO nand i1
+WIRE nand _ TO out _
 `,
   },
   {
@@ -95,7 +113,19 @@ VAR out BITOUT`,
     fixedCode: `VAR a BITIN
 VAR b BITIN
 VAR out BITOUT`,
-    editableCode: `# NANDゲートを使って回路を組み立ててください
+    editableCode: `VAR na NAND
+WIRE a _ TO na i0
+WIRE a _ TO na i1
+VAR nb NAND
+WIRE b _ TO nb i0
+WIRE b _ TO nb i1
+VAR or NAND
+WIRE na _ TO or i0
+WIRE nb _ TO or i1
+VAR not NAND
+WIRE or _ TO not i0
+WIRE or _ TO not i1
+WIRE not _ TO out _
 `,
   },
   {
@@ -114,7 +144,19 @@ VAR out BITOUT`,
     fixedCode: `VAR a BITIN
 VAR b BITIN
 VAR out BITOUT`,
-    editableCode: `# NANDゲートを使って回路を組み立ててください
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+VAR n1 NAND
+WIRE a _ TO n1 i0
+WIRE nand _ TO n1 i1
+VAR n2 NAND
+WIRE nand _ TO n2 i0
+WIRE b _ TO n2 i1
+VAR n3 NAND
+WIRE n1 _ TO n3 i0
+WIRE n2 _ TO n3 i1
+WIRE n3 _ TO out _
 `,
   },
   {
@@ -141,7 +183,10 @@ VAR out BITOUT`,
     fixedCode: `VAR s BITIN
 VAR r BITIN
 VAR q BITOUT`,
-    editableCode: `# FLIPFLOPを使って回路を組み立ててください
+    editableCode: `VAR ff FLIPFLOP
+WIRE s _ TO ff s
+WIRE r _ TO ff r
+WIRE ff _ TO q _
 `,
   },
 ];
