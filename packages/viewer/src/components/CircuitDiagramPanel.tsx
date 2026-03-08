@@ -32,6 +32,7 @@ type Props = {
   edges: Edge[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
+  fitViewTrigger: number;
 };
 
 function CircuitDiagramInner({
@@ -39,13 +40,14 @@ function CircuitDiagramInner({
   edges,
   onNodesChange,
   onEdgesChange,
+  fitViewTrigger,
 }: Props) {
   const { fitView } = useReactFlow();
 
   useEffect(() => {
     const timer = setTimeout(() => fitView(), 50);
     return () => clearTimeout(timer);
-  }, [nodes, edges, fitView]);
+  }, [fitViewTrigger, fitView]);
 
   return (
     <ReactFlow
