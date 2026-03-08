@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-
 import { TitlePage } from "./pages/TitlePage";
 import { LevelSelectPage } from "./pages/LevelSelectPage";
 import { LevelPage } from "./pages/LevelPage";
+import { SandboxPage } from "./pages/SandboxPage";
 import "./App.css";
 
 // key={id} forces remount when navigating between levels
@@ -17,7 +18,7 @@ function App() {
         <Route path="/" element={<TitlePage />} />
         <Route path="/levels" element={<LevelSelectPage />} />
         <Route path="/level/:id" element={<LevelPageWrapper />} />
-        <Route path="/sandbox" element={<Navigate to="/level/1" replace />} />
+        <Route path="/sandbox" element={<SandboxPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
