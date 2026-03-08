@@ -103,6 +103,54 @@ export function useCircuit() {
     [],
   );
 
+  const updateNodeSignals = useCallback(
+    (
+      inputs: Map<string, boolean>,
+      outputs: Map<string, boolean>,
+      allSignals: Map<string, boolean>,
+    ) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => {
+          if (node.data.moduleName === "BITIN") {
+            return {
+              ...node,
+              data: { ...node.data, value: inputs.get(node.id) ?? false },
+            };
+          }
+          if (node.data.moduleName === "BITOUT") {
+            return {
+              ...node,
+              data: { ...node.data, value: outputs.get(node.id) ?? false },
+            };
+          }
+          if (node.data.moduleName === "FLIPFLOP") {
+            const q = allSignals.get(`${node.id}.q`);
+            if (q !== undefined) {
+              return { ...node, data: { ...node.data, value: q } };
+            }
+          }
+          return node;
+        }),
+      );
+      setEdges((prevEdges) =>
+        prevEdges.map((edge) => {
+          const key = `${edge.source}.${edge.sourceHandle}`;
+          const signal = allSignals.get(key);
+          if (signal === undefined) return edge;
+          return {
+            ...edge,
+            style: {
+              stroke: signal ? "#4a9eff" : "#555",
+              strokeWidth: signal ? 2.5 : 1.5,
+              strokeDasharray: signal ? "none" : "5 3",
+            },
+          };
+        }),
+      );
+    },
+    [],
+  );
+
   return {
     nodes,
     edges,
@@ -113,6 +161,7 @@ export function useCircuit() {
     error,
     compile,
     toggleInput,
+    updateNodeSignals,
     setNodes,
     setEdges,
   };

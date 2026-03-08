@@ -9,7 +9,13 @@ export type TestCase = {
   status: "idle" | "pass" | "fail";
 };
 
-export function useTestCases(code: string | null) {
+type OnTestRun = (
+  inputs: Map<string, boolean>,
+  outputs: Map<string, boolean>,
+  allSignals: Map<string, boolean>,
+) => void;
+
+export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const vmRef = useRef<Vm | null>(null);
 
@@ -28,6 +34,9 @@ export function useTestCases(code: string | null) {
   const runVmRef = useRef<Vm | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const onTestRunRef = useRef(onTestRun);
+  onTestRunRef.current = onTestRun;
+
   const runStep = useCallback(() => {
     const idx = runIndexRef.current;
     const vm = runVmRef.current;
@@ -45,6 +54,8 @@ export function useTestCases(code: string | null) {
       );
       const result = [...prev];
       result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
+
+      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
 
       if (pass && idx + 1 < prev.length) {
         runIndexRef.current = idx + 1;
@@ -90,7 +101,62 @@ export function useTestCases(code: string | null) {
     }
   }, [code, runStep]);
 
+  const stepIndexRef = useRef<number>(0);
+  const stepVmRef = useRef<Vm | null>(null);
+
+  const runNext = useCallback(() => {
+    if (!code) return;
+    // First step: compile and reset
+    if (!stepVmRef.current) {
+      try {
+        const vm = new Vm();
+        vm.compile(code);
+        stepVmRef.current = vm;
+        stepIndexRef.current = 0;
+        setTestCases((prev) =>
+          prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
+        );
+      } catch {
+        setTestCases((prev) =>
+          prev.map((tc, i) =>
+            i === 0
+              ? { ...tc, actualOutputs: null, status: "fail" as const }
+              : tc,
+          ),
+        );
+        return;
+      }
+    }
+
+    const vm = stepVmRef.current;
+    const idx = stepIndexRef.current;
+
+    setTestCases((prev) => {
+      if (idx >= prev.length) return prev;
+      const tc = prev[idx];
+      const actualOutputs = vm.run(tc.inputs);
+      const pass = [...tc.expectedOutputs.entries()].every(
+        ([name, expected]) => actualOutputs.get(name) === expected,
+      );
+      const result = [...prev];
+      result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
+
+      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
+
+      if (pass && idx + 1 < prev.length) {
+        stepIndexRef.current = idx + 1;
+      } else {
+        // Stop on fail or completion
+        stepVmRef.current = null;
+      }
+
+      return result;
+    });
+  }, [code]);
+
   const resetResults = useCallback(() => {
+    stepVmRef.current = null;
+    stepIndexRef.current = 0;
     setTestCases((prev) =>
       prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
     );
@@ -103,6 +169,7 @@ export function useTestCases(code: string | null) {
     testCases,
     loadTestCases,
     runAll,
+    runNext,
     resetResults,
     allPassed,
   };

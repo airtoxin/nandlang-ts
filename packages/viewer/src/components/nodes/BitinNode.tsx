@@ -7,7 +7,7 @@ export function BitinNode({ data }: NodeProps & { data: NodeData }) {
   return (
     <div className={`circuit-node bitin-node ${active ? "active" : ""}`}>
       <div className="node-label">{data.label}</div>
-      <div className="node-type">{active ? "ON" : "OFF"}</div>
+      <div className="node-type">{active ? "1" : "0"}</div>
       <Handle type="source" position={Position.Right} id="o0" />
     </div>
   );

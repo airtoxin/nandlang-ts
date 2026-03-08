@@ -29,4 +29,14 @@ export class Program {
 
     return outputSignals;
   }
+
+  public getAllSignals(): Map<string, boolean> {
+    const signals = new Map<string, boolean>();
+    for (const child of this.variable.children) {
+      for (const [portName, port] of child.outPorts.entries()) {
+        signals.set(`${child.name}.${portName}`, port.value);
+      }
+    }
+    return signals;
+  }
 }
