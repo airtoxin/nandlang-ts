@@ -15,6 +15,7 @@
   margin: 0;
   font-size: 28px;
   color: #eee;
+  flex: 1;
 }
 
 .back-link {
@@ -25,6 +26,21 @@
 
 .back-link:hover {
   color: #ccc;
+}
+
+.reset-progress-btn {
+  background: transparent;
+  border: 1px solid #666;
+  color: #999;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reset-progress-btn:hover {
+  border-color: #e55;
+  color: #e55;
 }
 
 .level-grid {
@@ -48,6 +64,25 @@
 .level-card:hover {
   border-color: #4a9eff;
   background: #333;
+}
+
+.level-card-locked {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: default;
+}
+
+.level-card-locked:hover {
+  border-color: #444;
+  background: #2a2a2a;
+}
+
+.level-card-completed {
+  border-color: #4a4;
+}
+
+.level-card-check {
+  color: #4a4;
 }
 
 .level-card-title {
