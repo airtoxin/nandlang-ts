@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { puzzles } from "../lib/puzzles";
-import {
-  getProgress,
-  isLevelUnlocked,
-  resetProgress,
-} from "../lib/progress";
+import { getProgress, resetProgress } from "../lib/progress";
 import "./LevelSelectPage.css";
 
 export function LevelSelectPage() {
@@ -29,17 +25,7 @@ export function LevelSelectPage() {
       </div>
       <div className="level-grid">
         {puzzles.map((puzzle) => {
-          const unlocked = isLevelUnlocked(puzzle.id, puzzles, progress);
           const completed = progress.completedLevels.includes(puzzle.id);
-
-          if (!unlocked) {
-            return (
-              <div key={puzzle.id} className="level-card level-card-locked">
-                <span className="level-card-title">{puzzle.title}</span>
-                <span className="level-card-desc">🔒</span>
-              </div>
-            );
-          }
 
           return (
             <Link
