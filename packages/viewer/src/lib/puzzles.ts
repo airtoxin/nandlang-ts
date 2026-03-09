@@ -156,7 +156,21 @@ WIRE nand _ TO out _
   },
   {
     id: 6,
-    title: "Lv6: NOR",
+    title: "Lv6: ON",
+    description:
+      "入力なしで常に1を出力する回路を作ってください。\nNANDゲートの入力に何も接続しないとどうなるか考えてみましょう。",
+    inputNames: [],
+    outputNames: ["out"],
+    testCases: [tc({}, { out: true })],
+    moduleDefs: "",
+    fixedCode: `VAR out BITOUT`,
+    editableCode: `VAR nand NAND\nWIRE nand _ TO out _\n`,
+    availableModules: ["NAND"],
+    helpSections: ["mod-nand", "gate-on"],
+  },
+  {
+    id: 7,
+    title: "Lv7: NOR",
     description:
       "aとbの両方が0のときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
@@ -180,8 +194,8 @@ WIRE not _ TO out _
     helpSections: ["gate-nor"],
   },
   {
-    id: 7,
-    title: "Lv7: XOR",
+    id: 8,
+    title: "Lv8: XOR",
     description:
       "aとbが異なるときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
@@ -209,8 +223,8 @@ WIRE and _ TO out _
     helpSections: ["gate-xor"],
   },
   {
-    id: 8,
-    title: "Lv8: XNOR",
+    id: 9,
+    title: "Lv9: XNOR",
     description:
       "aとbが同じときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
@@ -234,8 +248,8 @@ WIRE not _ TO out _
     helpSections: ["gate-xnor"],
   },
   {
-    id: 9,
-    title: "Lv9: AND3",
+    id: 10,
+    title: "Lv10: AND3",
     description:
       "3つの入力a,b,cすべてが1のときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b", "c"],
@@ -264,8 +278,8 @@ WIRE a1 _ TO out _
     helpSections: ["gate-and"],
   },
   {
-    id: 10,
-    title: "Lv10: OR3",
+    id: 11,
+    title: "Lv11: OR3",
     description:
       "3つの入力a,b,cのいずれかが1ならoutが1になる回路を作ってください。",
     inputNames: ["a", "b", "c"],

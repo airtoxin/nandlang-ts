@@ -142,6 +142,36 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "gate-on",
+    title: "ON: 常時1出力",
+    content: (
+      <>
+        <p>入力なしで常に1を出力します。</p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>out</code> / <code>_</code></td><td>出力</td></tr>
+          </tbody>
+        </table>
+        <p>真理値表:</p>
+        <table>
+          <thead>
+            <tr><th>出力</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント: NANDから常時1を作るには</summary>
+          <p>NANDゲートの入力に何も接続しないと、デフォルト値(0)が使われます。NAND(0, 0) = 1 です。</p>
+        </details>
+      </>
+    ),
+  },
+  {
     id: "gate-not",
     title: "NOT: 反転",
     content: (

@@ -1,3 +1,11 @@
+export const ON = `\
+MOD START ON
+  VAR nand NAND
+  VAR out BITOUT
+  WIRE nand _ TO out _
+MOD END
+`;
+
 export const NOT = `\
 MOD START NOT
   VAR in BITIN
