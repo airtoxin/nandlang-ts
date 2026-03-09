@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { Puzzle } from "../lib/puzzles";
 import { HelpManual } from "./HelpManual";
 
@@ -29,6 +30,7 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
       {puzzle && (
         <>
           <div className="panel-header">
+            <Link to="/levels" className="back-to-levels">&larr; Back</Link>
             <h3>{puzzle.title}</h3>
             <button
               className="help-btn"
