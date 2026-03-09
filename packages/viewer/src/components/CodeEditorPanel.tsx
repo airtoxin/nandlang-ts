@@ -9,28 +9,6 @@ type Props = {
   initialCode?: string;
 };
 
-/** Extract only VAR lines from fixedCode, hiding MOD blocks */
-function getDisplayFixedCode(fixedCode: string): string {
-  const lines = fixedCode.split("\n");
-  const result: string[] = [];
-  let inMod = false;
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("MOD START")) {
-      inMod = true;
-      continue;
-    }
-    if (trimmed === "MOD END") {
-      inMod = false;
-      continue;
-    }
-    if (!inMod && trimmed !== "") {
-      result.push(trimmed);
-    }
-  }
-  return result.join("\n");
-}
-
 export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "" }: Props) {
   const [code, setCode] = useState(puzzle?.editableCode ?? initialCode);
 
@@ -39,8 +17,9 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
     onDirty?.();
   };
 
-  const fullCode = puzzle ? `${puzzle.fixedCode}\n${code}` : code;
-  const displayFixed = puzzle ? getDisplayFixedCode(puzzle.fixedCode) : "";
+  const fullCode = puzzle
+    ? `${puzzle.moduleDefs}${puzzle.fixedCode}\n${code}`
+    : code;
   const hasModules = puzzle?.availableModules && puzzle.availableModules.length > 0;
 
   return (
@@ -59,7 +38,7 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
               </span>
             </div>
           )}
-          <pre className="fixed-code">{displayFixed}</pre>
+          <pre className="fixed-code">{puzzle.fixedCode}</pre>
         </>
       )}
       {!puzzle && (

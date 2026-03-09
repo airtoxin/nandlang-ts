@@ -88,7 +88,7 @@ export function LevelPage() {
   useEffect(() => {
     if (!currentPuzzle) return;
     tc.loadTestCases(currentPuzzle.testCases);
-    handleCompile(`${currentPuzzle.fixedCode}\n${currentPuzzle.editableCode}`);
+    handleCompile(`${currentPuzzle.moduleDefs}${currentPuzzle.fixedCode}\n${currentPuzzle.editableCode}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

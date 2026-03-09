@@ -20,6 +20,9 @@ export type Puzzle = {
   inputNames: string[];
   outputNames: string[];
   testCases: PuzzleTestCase[];
+  /** MOD定義（コンパイル時にfixedCodeの前に結合される、表示しない） */
+  moduleDefs: string;
+  /** 表示されるfixed部分（BITIN/BITOUT宣言等） */
   fixedCode: string;
   editableCode: string;
   unlocksModule?: string;
@@ -48,6 +51,7 @@ export const puzzles: Puzzle[] = [
       tc({ a: false }, { out: false }),
       tc({ a: true }, { out: true }),
     ],
+    moduleDefs: "",
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
     editableCode: `WIRE a _ TO out _
 `,
@@ -65,6 +69,7 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: false }),
     ],
+    moduleDefs: "",
     fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR nand NAND
 WIRE a _ TO nand i0
@@ -84,6 +89,7 @@ WIRE nand _ TO out _
       tc({ a: false }, { out: true }),
       tc({ a: true }, { out: false }),
     ],
+    moduleDefs: "",
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
     editableCode: `VAR nand NAND
 WIRE a _ TO nand i0
@@ -106,7 +112,8 @@ WIRE nand _ TO out _
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `${NOT}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    moduleDefs: NOT,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR nand NAND
 VAR not NOT
 WIRE a _ TO nand i0
@@ -130,7 +137,8 @@ WIRE not _ TO out _
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `${NOT}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    moduleDefs: NOT,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR na NOT
 VAR nb NOT
 VAR nand NAND
@@ -156,7 +164,8 @@ WIRE nand _ TO out _
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    fixedCode: `${NOT}${AND}${OR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    moduleDefs: `${NOT}${AND}${OR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR or OR
 VAR not NOT
 WIRE a _ TO or i0
@@ -180,7 +189,8 @@ WIRE not _ TO out _
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    fixedCode: `${NOT}${AND}${OR}${NOR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR nand NAND
 VAR or OR
 VAR and AND
@@ -208,7 +218,8 @@ WIRE and _ TO out _
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
     editableCode: `VAR xor XOR
 VAR not NOT
 WIRE a _ TO xor i0
@@ -236,7 +247,8 @@ WIRE not _ TO out _
       tc({ a: true, b: true, c: false }, { out: false }),
       tc({ a: true, b: true, c: true }, { out: true }),
     ],
-    fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
     editableCode: `VAR a0 AND
 VAR a1 AND
 WIRE a _ TO a0 i0
@@ -265,7 +277,8 @@ WIRE a1 _ TO out _
       tc({ a: true, b: true, c: false }, { out: true }),
       tc({ a: true, b: true, c: true }, { out: true }),
     ],
-    fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
     editableCode: `VAR o0 OR
 VAR o1 OR
 WIRE a _ TO o0 i0
