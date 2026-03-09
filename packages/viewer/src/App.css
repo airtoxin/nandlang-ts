@@ -347,29 +347,6 @@
   font-family: monospace;
 }
 
-.mod-details-toggle {
-  margin-left: auto;
-  background: transparent;
-  border: 1px solid #555;
-  color: #888;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.mod-details-toggle:hover {
-  color: #ccc;
-  border-color: #888;
-}
-
-.mod-details {
-  margin-bottom: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  font-size: 11px;
-}
-
 /* Unlock notification */
 .unlock-message {
   position: fixed;

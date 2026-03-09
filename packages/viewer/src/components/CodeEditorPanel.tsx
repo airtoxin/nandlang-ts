@@ -33,7 +33,6 @@ function getDisplayFixedCode(fixedCode: string): string {
 
 export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "" }: Props) {
   const [code, setCode] = useState(puzzle?.editableCode ?? initialCode);
-  const [showModDetails, setShowModDetails] = useState(false);
 
   const handleChange = (value: string) => {
     setCode(value);
@@ -56,18 +55,9 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
             <div className="available-modules">
               <span className="available-modules-label">利用可能モジュール: </span>
               <span className="available-modules-list">
-                NAND, {puzzle.availableModules!.join(", ")}
+                {puzzle.availableModules!.join(", ")}
               </span>
-              <button
-                className="mod-details-toggle"
-                onClick={() => setShowModDetails(!showModDetails)}
-              >
-                {showModDetails ? "定義を隠す" : "定義を見る"}
-              </button>
             </div>
-          )}
-          {showModDetails && (
-            <pre className="fixed-code mod-details">{puzzle.fixedCode}</pre>
           )}
           <pre className="fixed-code">{displayFixed}</pre>
         </>

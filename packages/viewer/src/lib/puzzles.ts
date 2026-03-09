@@ -49,7 +49,8 @@ export const puzzles: Puzzle[] = [
       tc({ a: true }, { out: true }),
     ],
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `WIRE a _ TO out _
+`,
   },
   {
     id: 2,
@@ -65,7 +66,12 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: false }),
     ],
     fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+WIRE nand _ TO out _
+`,
+    availableModules: ["NAND"],
   },
   {
     id: 3,
@@ -79,8 +85,13 @@ export const puzzles: Puzzle[] = [
       tc({ a: true }, { out: false }),
     ],
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE a _ TO nand i1
+WIRE nand _ TO out _
+`,
     unlocksModule: "NOT",
+    availableModules: ["NAND"],
   },
   {
     id: 4,
@@ -96,9 +107,15 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: true }),
     ],
     fixedCode: `${NOT}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR nand NAND
+VAR not NOT
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+WIRE nand _ TO not _
+WIRE not _ TO out _
+`,
     unlocksModule: "AND",
-    availableModules: ["NOT"],
+    availableModules: ["NAND", "NOT"],
   },
   {
     id: 5,
@@ -114,9 +131,17 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: true }),
     ],
     fixedCode: `${NOT}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR na NOT
+VAR nb NOT
+VAR nand NAND
+WIRE a _ TO na _
+WIRE b _ TO nb _
+WIRE na _ TO nand i0
+WIRE nb _ TO nand i1
+WIRE nand _ TO out _
+`,
     unlocksModule: "OR",
-    availableModules: ["NOT"],
+    availableModules: ["NAND", "NOT"],
   },
   {
     id: 6,
@@ -132,9 +157,15 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: false }),
     ],
     fixedCode: `${NOT}${AND}${OR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR or OR
+VAR not NOT
+WIRE a _ TO or i0
+WIRE b _ TO or i1
+WIRE or _ TO not _
+WIRE not _ TO out _
+`,
     unlocksModule: "NOR",
-    availableModules: ["NOT", "AND", "OR"],
+    availableModules: ["NAND", "NOT", "AND", "OR"],
   },
   {
     id: 7,
@@ -150,9 +181,19 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: false }),
     ],
     fixedCode: `${NOT}${AND}${OR}${NOR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR nand NAND
+VAR or OR
+VAR and AND
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+WIRE a _ TO or i0
+WIRE b _ TO or i1
+WIRE nand _ TO and i0
+WIRE or _ TO and i1
+WIRE and _ TO out _
+`,
     unlocksModule: "XOR",
-    availableModules: ["NOT", "AND", "OR", "NOR"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR"],
   },
   {
     id: 8,
@@ -168,9 +209,15 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true }, { out: true }),
     ],
     fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR xor XOR
+VAR not NOT
+WIRE a _ TO xor i0
+WIRE b _ TO xor i1
+WIRE xor _ TO not _
+WIRE not _ TO out _
+`,
     unlocksModule: "XNOR",
-    availableModules: ["NOT", "AND", "OR", "NOR", "XOR"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR"],
   },
   {
     id: 9,
@@ -190,9 +237,16 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true, c: true }, { out: true }),
     ],
     fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR a0 AND
+VAR a1 AND
+WIRE a _ TO a0 i0
+WIRE b _ TO a0 i1
+WIRE a0 _ TO a1 i0
+WIRE c _ TO a1 i1
+WIRE a1 _ TO out _
+`,
     unlocksModule: "AND3",
-    availableModules: ["NOT", "AND", "OR", "NOR", "XOR", "XNOR"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR"],
   },
   {
     id: 10,
@@ -212,8 +266,15 @@ export const puzzles: Puzzle[] = [
       tc({ a: true, b: true, c: true }, { out: true }),
     ],
     fixedCode: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
-    editableCode: "",
+    editableCode: `VAR o0 OR
+VAR o1 OR
+WIRE a _ TO o0 i0
+WIRE b _ TO o0 i1
+WIRE o0 _ TO o1 i0
+WIRE c _ TO o1 i1
+WIRE o1 _ TO out _
+`,
     unlocksModule: "OR3",
-    availableModules: ["NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3"],
   },
 ];
