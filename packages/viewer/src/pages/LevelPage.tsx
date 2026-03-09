@@ -21,6 +21,7 @@ export function LevelPage() {
   const circuit = useCircuit();
   const [compiledCode, setCompiledCode] = useState<string | null>(null);
   const [fitViewTrigger, setFitViewTrigger] = useState(0);
+  const [dirty, setDirty] = useState(false);
 
   const tc = useTestCases(compiledCode, circuit.updateNodeSignals);
 
@@ -29,6 +30,7 @@ export function LevelPage() {
       circuit.compile(code);
       setCompiledCode(code);
       setFitViewTrigger((c) => c + 1);
+      setDirty(false);
       tc.resetResults();
     },
     [circuit, tc],
@@ -71,6 +73,7 @@ export function LevelPage() {
     <div className="app-layout">
       <CodeEditorPanel
         onCompile={handleCompile}
+        onDirty={() => setDirty(true)}
         error={circuit.error}
         puzzle={currentPuzzle}
       />
@@ -90,6 +93,7 @@ export function LevelPage() {
         allPassed={tc.allPassed}
         onNextLevel={handleNextLevel}
         isLastLevel={levelIndex >= puzzles.length - 1}
+        disabled={dirty}
       />
     </div>
   );
