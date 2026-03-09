@@ -80,18 +80,13 @@ export function TestCasePanel({
           >
             Run All
           </button>
-        </div>
-      </div>
-      {allPassed && (
-        <div className="success-banner">
-          All tests passed!
-          {!isLastLevel && (
+          {allPassed && !isLastLevel && (
             <button className="next-level-btn" onClick={onNextLevel}>
               Next Level &rarr;
             </button>
           )}
         </div>
-      )}
+      </div>
       {testCases.length === 0 ? (
         <p className="empty-message">No test cases.</p>
       ) : (

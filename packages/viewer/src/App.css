@@ -308,28 +308,13 @@
   white-space: pre-line;
 }
 
-/* Success banner */
-.success-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 14px;
-  margin-bottom: 8px;
-  background: #1a3a1a;
-  border: 1px solid #3a8a3e;
-  border-radius: 6px;
-  color: #7dff82;
-  font-size: 14px;
-  font-weight: 600;
-}
-
 .next-level-btn {
-  padding: 6px 16px;
+  padding: 4px 12px;
   background: #4a9eff;
   color: white;
-  border: none;
+  border: 1px solid #3a8eef;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
