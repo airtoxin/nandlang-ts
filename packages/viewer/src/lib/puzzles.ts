@@ -25,8 +25,9 @@ export type Puzzle = {
   /** 表示されるfixed部分（BITIN/BITOUT宣言等） */
   fixedCode: string;
   editableCode: string;
-  unlocksModule?: string;
   availableModules?: string[];
+  /** ヘルプマニュアル内の関連セクションID */
+  helpSections?: string[];
 };
 
 function tc(
@@ -55,6 +56,7 @@ export const puzzles: Puzzle[] = [
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
     editableCode: `WIRE a _ TO out _
 `,
+    helpSections: ["syntax-wire", "mod-bitin", "mod-bitout"],
   },
   {
     id: 2,
@@ -77,6 +79,7 @@ WIRE b _ TO nand i1
 WIRE nand _ TO out _
 `,
     availableModules: ["NAND"],
+    helpSections: ["syntax-var", "syntax-wire", "mod-nand"],
   },
   {
     id: 3,
@@ -96,8 +99,8 @@ WIRE a _ TO nand i0
 WIRE a _ TO nand i1
 WIRE nand _ TO out _
 `,
-    unlocksModule: "NOT",
     availableModules: ["NAND"],
+    helpSections: ["mod-nand", "gate-not"],
   },
   {
     id: 4,
@@ -121,8 +124,8 @@ WIRE b _ TO nand i1
 WIRE nand _ TO not _
 WIRE not _ TO out _
 `,
-    unlocksModule: "AND",
     availableModules: ["NAND", "NOT"],
+    helpSections: ["mod-nand", "gate-not", "gate-and"],
   },
   {
     id: 5,
@@ -148,8 +151,8 @@ WIRE na _ TO nand i0
 WIRE nb _ TO nand i1
 WIRE nand _ TO out _
 `,
-    unlocksModule: "OR",
     availableModules: ["NAND", "NOT"],
+    helpSections: ["mod-nand", "gate-not", "gate-or"],
   },
   {
     id: 6,
@@ -173,8 +176,8 @@ WIRE b _ TO or i1
 WIRE or _ TO not _
 WIRE not _ TO out _
 `,
-    unlocksModule: "NOR",
     availableModules: ["NAND", "NOT", "AND", "OR"],
+    helpSections: ["gate-nor"],
   },
   {
     id: 7,
@@ -202,8 +205,8 @@ WIRE nand _ TO and i0
 WIRE or _ TO and i1
 WIRE and _ TO out _
 `,
-    unlocksModule: "XOR",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR"],
+    helpSections: ["gate-xor"],
   },
   {
     id: 8,
@@ -227,8 +230,8 @@ WIRE b _ TO xor i1
 WIRE xor _ TO not _
 WIRE not _ TO out _
 `,
-    unlocksModule: "XNOR",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR"],
+    helpSections: ["gate-xnor"],
   },
   {
     id: 9,
@@ -257,8 +260,8 @@ WIRE a0 _ TO a1 i0
 WIRE c _ TO a1 i1
 WIRE a1 _ TO out _
 `,
-    unlocksModule: "AND3",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR"],
+    helpSections: ["gate-and"],
   },
   {
     id: 10,
@@ -287,7 +290,7 @@ WIRE o0 _ TO o1 i0
 WIRE c _ TO o1 i1
 WIRE o1 _ TO out _
 `,
-    unlocksModule: "OR3",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3"],
+    helpSections: ["gate-or"],
   },
 ];
