@@ -8,6 +8,11 @@ import { TestCasePanel } from "../components/TestCasePanel";
 import { useCircuit } from "../hooks/useCircuit";
 import { useTestCases } from "../hooks/useTestCases";
 import { puzzles } from "../lib/puzzles";
+import {
+  getProgress,
+  isLevelUnlocked,
+  markLevelCompleted,
+} from "../lib/progress";
 
 export function LevelPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,8 +27,15 @@ export function LevelPage() {
   const [compiledCode, setCompiledCode] = useState<string | null>(null);
   const [fitViewTrigger, setFitViewTrigger] = useState(0);
   const [dirty, setDirty] = useState(false);
+  const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
 
   const tc = useTestCases(compiledCode, circuit.updateNodeSignals);
+
+  // Check if level is locked
+  const progress = useMemo(() => getProgress(), []);
+  const isUnlocked = currentPuzzle
+    ? isLevelUnlocked(currentPuzzle.id, puzzles, progress)
+    : false;
 
   const handleCompile = useCallback(
     (code: string) => {
@@ -43,6 +55,21 @@ export function LevelPage() {
     }
   }, [levelIndex, navigate]);
 
+  // Mark level completed when all tests pass
+  useEffect(() => {
+    if (tc.allPassed && currentPuzzle) {
+      markLevelCompleted(currentPuzzle.id);
+      if (currentPuzzle.unlocksModule) {
+        setUnlockMessage(
+          `${currentPuzzle.unlocksModule} モジュールが解放されました！`,
+        );
+      }
+      // Clear unlock message after a delay
+      const timer = setTimeout(() => setUnlockMessage(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [tc.allPassed, currentPuzzle]);
+
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       circuit.setNodes((nds) => applyNodeChanges(changes, nds) as typeof nds);
@@ -61,11 +88,12 @@ export function LevelPage() {
   useEffect(() => {
     if (!currentPuzzle) return;
     tc.loadTestCases(currentPuzzle.testCases);
-    handleCompile(`${currentPuzzle.fixedCode}\n${currentPuzzle.editableCode}`);
+    handleCompile(`${currentPuzzle.moduleDefs}${currentPuzzle.fixedCode}\n${currentPuzzle.editableCode}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!currentPuzzle) {
+  // Redirect locked levels
+  if (!currentPuzzle || !isUnlocked) {
     return <Navigate to="/levels" replace />;
   }
 
@@ -95,6 +123,9 @@ export function LevelPage() {
         isLastLevel={levelIndex >= puzzles.length - 1}
         disabled={dirty}
       />
+      {unlockMessage && (
+        <div className="unlock-message">{unlockMessage}</div>
+      )}
     </div>
   );
 }

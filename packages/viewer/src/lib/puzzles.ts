@@ -1,3 +1,13 @@
+import {
+  NOT,
+  AND,
+  OR,
+  NOR,
+  XOR,
+  XNOR,
+  AND3,
+} from "@nandlang-ts/language/code-fragments";
+
 export type PuzzleTestCase = {
   inputs: Map<string, boolean>;
   expectedOutputs: Map<string, boolean>;
@@ -10,8 +20,13 @@ export type Puzzle = {
   inputNames: string[];
   outputNames: string[];
   testCases: PuzzleTestCase[];
+  /** MOD定義（コンパイル時にfixedCodeの前に結合される、表示しない） */
+  moduleDefs: string;
+  /** 表示されるfixed部分（BITIN/BITOUT宣言等） */
   fixedCode: string;
   editableCode: string;
+  unlocksModule?: string;
+  availableModules?: string[];
 };
 
 function tc(
@@ -27,28 +42,68 @@ function tc(
 export const puzzles: Puzzle[] = [
   {
     id: 1,
-    title: "Lv1: NOT",
+    title: "Lv1: Wire",
     description:
-      "NANDゲートを使ってNOTゲートを作ってください。\n入力aの反転をoutに出力します。",
+      "入力aをそのまま出力outに接続してください。\nWIRE文で変数同士を結線します。",
+    inputNames: ["a"],
+    outputNames: ["out"],
+    testCases: [
+      tc({ a: false }, { out: false }),
+      tc({ a: true }, { out: true }),
+    ],
+    moduleDefs: "",
+    fixedCode: `VAR a BITIN\nVAR out BITOUT`,
+    editableCode: `WIRE a _ TO out _
+`,
+  },
+  {
+    id: 2,
+    title: "Lv2: NAND",
+    description:
+      "2つの入力をNANDゲートに接続し、結果をoutに出力してください。\nVAR文で変数を宣言し、WIRE文で結線します。",
+    inputNames: ["a", "b"],
+    outputNames: ["out"],
+    testCases: [
+      tc({ a: false, b: false }, { out: true }),
+      tc({ a: false, b: true }, { out: true }),
+      tc({ a: true, b: false }, { out: true }),
+      tc({ a: true, b: true }, { out: false }),
+    ],
+    moduleDefs: "",
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
+WIRE b _ TO nand i1
+WIRE nand _ TO out _
+`,
+    availableModules: ["NAND"],
+  },
+  {
+    id: 3,
+    title: "Lv3: NOT",
+    description:
+      "NANDゲートを使って入力aの反転をoutに出力してください。",
     inputNames: ["a"],
     outputNames: ["out"],
     testCases: [
       tc({ a: false }, { out: true }),
       tc({ a: true }, { out: false }),
     ],
-    fixedCode: `VAR a BITIN
-VAR out BITOUT
-VAR nand NAND`,
-    editableCode: `WIRE a _ TO nand i0
+    moduleDefs: "",
+    fixedCode: `VAR a BITIN\nVAR out BITOUT`,
+    editableCode: `VAR nand NAND
+WIRE a _ TO nand i0
 WIRE a _ TO nand i1
 WIRE nand _ TO out _
 `,
+    unlocksModule: "NOT",
+    availableModules: ["NAND"],
   },
   {
-    id: 2,
-    title: "Lv2: AND",
+    id: 4,
+    title: "Lv4: AND",
     description:
-      "NANDゲートを使ってANDゲートを作ってください。\naとbの両方が1のときだけoutが1になります。",
+      "aとbの両方が1のときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
     outputNames: ["out"],
     testCases: [
@@ -57,23 +112,23 @@ WIRE nand _ TO out _
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `VAR a BITIN
-VAR b BITIN
-VAR out BITOUT
-VAR nand NAND
-VAR n2 NAND`,
-    editableCode: `WIRE a _ TO nand i0
+    moduleDefs: NOT,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR nand NAND
+VAR not NOT
+WIRE a _ TO nand i0
 WIRE b _ TO nand i1
-WIRE nand _ TO n2 i0
-WIRE nand _ TO n2 i1
-WIRE n2 _ TO out _
+WIRE nand _ TO not _
+WIRE not _ TO out _
 `,
+    unlocksModule: "AND",
+    availableModules: ["NAND", "NOT"],
   },
   {
-    id: 3,
-    title: "Lv3: OR",
+    id: 5,
+    title: "Lv5: OR",
     description:
-      "NANDゲートを使ってORゲートを作ってください。\naまたはbのどちらかが1ならoutが1になります。",
+      "aまたはbのどちらかが1ならoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
     outputNames: ["out"],
     testCases: [
@@ -82,26 +137,25 @@ WIRE n2 _ TO out _
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `VAR a BITIN
-VAR b BITIN
-VAR out BITOUT
-VAR na NAND
-VAR nb NAND
-VAR nand NAND`,
-    editableCode: `WIRE a _ TO na i0
-WIRE a _ TO na i1
-WIRE b _ TO nb i0
-WIRE b _ TO nb i1
+    moduleDefs: NOT,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR na NOT
+VAR nb NOT
+VAR nand NAND
+WIRE a _ TO na _
+WIRE b _ TO nb _
 WIRE na _ TO nand i0
 WIRE nb _ TO nand i1
 WIRE nand _ TO out _
 `,
+    unlocksModule: "OR",
+    availableModules: ["NAND", "NOT"],
   },
   {
-    id: 4,
-    title: "Lv4: NOR",
+    id: 6,
+    title: "Lv6: NOR",
     description:
-      "NANDゲートを使ってNORゲートを作ってください。\naとbの両方が0のときだけoutが1になります。",
+      "aとbの両方が0のときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
     outputNames: ["out"],
     testCases: [
@@ -110,29 +164,23 @@ WIRE nand _ TO out _
       tc({ a: true, b: false }, { out: false }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    fixedCode: `VAR a BITIN
-VAR b BITIN
-VAR out BITOUT
-VAR na NAND
-VAR nb NAND
-VAR or NAND
-VAR not NAND`,
-    editableCode: `WIRE a _ TO na i0
-WIRE a _ TO na i1
-WIRE b _ TO nb i0
-WIRE b _ TO nb i1
-WIRE na _ TO or i0
-WIRE nb _ TO or i1
-WIRE or _ TO not i0
-WIRE or _ TO not i1
+    moduleDefs: `${NOT}${AND}${OR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR or OR
+VAR not NOT
+WIRE a _ TO or i0
+WIRE b _ TO or i1
+WIRE or _ TO not _
 WIRE not _ TO out _
 `,
+    unlocksModule: "NOR",
+    availableModules: ["NAND", "NOT", "AND", "OR"],
   },
   {
-    id: 5,
-    title: "Lv5: XOR",
+    id: 7,
+    title: "Lv7: XOR",
     description:
-      "NANDゲートを使ってXORゲートを作ってください。\naとbが異なるときだけoutが1になります。",
+      "aとbが異なるときだけoutが1になる回路を作ってください。",
     inputNames: ["a", "b"],
     outputNames: ["out"],
     testCases: [
@@ -141,52 +189,105 @@ WIRE not _ TO out _
       tc({ a: true, b: false }, { out: true }),
       tc({ a: true, b: true }, { out: false }),
     ],
-    fixedCode: `VAR a BITIN
-VAR b BITIN
-VAR out BITOUT
-VAR nand NAND
-VAR n1 NAND
-VAR n2 NAND
-VAR n3 NAND`,
-    editableCode: `WIRE a _ TO nand i0
+    moduleDefs: `${NOT}${AND}${OR}${NOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR nand NAND
+VAR or OR
+VAR and AND
+WIRE a _ TO nand i0
 WIRE b _ TO nand i1
-WIRE a _ TO n1 i0
-WIRE nand _ TO n1 i1
-WIRE nand _ TO n2 i0
-WIRE b _ TO n2 i1
-WIRE n1 _ TO n3 i0
-WIRE n2 _ TO n3 i1
-WIRE n3 _ TO out _
+WIRE a _ TO or i0
+WIRE b _ TO or i1
+WIRE nand _ TO and i0
+WIRE or _ TO and i1
+WIRE and _ TO out _
 `,
+    unlocksModule: "XOR",
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR"],
   },
   {
-    id: 6,
-    title: "Lv6: SR Latch",
+    id: 8,
+    title: "Lv8: XNOR",
     description:
-      "FLIPFLOPを使ってSRラッチを作ってください。\nsが1のときqを1にセット、rが1のときqを0にリセットします。\nどちらも0のときは前の状態を保持します。\n(テストは順番に実行され、状態が引き継がれます)",
-    inputNames: ["s", "r"],
-    outputNames: ["q"],
+      "aとbが同じときだけoutが1になる回路を作ってください。",
+    inputNames: ["a", "b"],
+    outputNames: ["out"],
     testCases: [
-      // Initial state: q=0
-      tc({ s: false, r: false }, { q: false }),
-      // Set: q becomes 1
-      tc({ s: true, r: false }, { q: true }),
-      // Hold: q stays 1
-      tc({ s: false, r: false }, { q: true }),
-      // Reset: q becomes 0
-      tc({ s: false, r: true }, { q: false }),
-      // Hold: q stays 0
-      tc({ s: false, r: false }, { q: false }),
-      // Set again: q becomes 1
-      tc({ s: true, r: false }, { q: true }),
+      tc({ a: false, b: false }, { out: true }),
+      tc({ a: false, b: true }, { out: false }),
+      tc({ a: true, b: false }, { out: false }),
+      tc({ a: true, b: true }, { out: true }),
     ],
-    fixedCode: `VAR s BITIN
-VAR r BITIN
-VAR q BITOUT
-VAR ff FLIPFLOP`,
-    editableCode: `WIRE s _ TO ff s
-WIRE r _ TO ff r
-WIRE ff _ TO q _
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR out BITOUT`,
+    editableCode: `VAR xor XOR
+VAR not NOT
+WIRE a _ TO xor i0
+WIRE b _ TO xor i1
+WIRE xor _ TO not _
+WIRE not _ TO out _
 `,
+    unlocksModule: "XNOR",
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR"],
+  },
+  {
+    id: 9,
+    title: "Lv9: AND3",
+    description:
+      "3つの入力a,b,cすべてが1のときだけoutが1になる回路を作ってください。",
+    inputNames: ["a", "b", "c"],
+    outputNames: ["out"],
+    testCases: [
+      tc({ a: false, b: false, c: false }, { out: false }),
+      tc({ a: false, b: false, c: true }, { out: false }),
+      tc({ a: false, b: true, c: false }, { out: false }),
+      tc({ a: false, b: true, c: true }, { out: false }),
+      tc({ a: true, b: false, c: false }, { out: false }),
+      tc({ a: true, b: false, c: true }, { out: false }),
+      tc({ a: true, b: true, c: false }, { out: false }),
+      tc({ a: true, b: true, c: true }, { out: true }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
+    editableCode: `VAR a0 AND
+VAR a1 AND
+WIRE a _ TO a0 i0
+WIRE b _ TO a0 i1
+WIRE a0 _ TO a1 i0
+WIRE c _ TO a1 i1
+WIRE a1 _ TO out _
+`,
+    unlocksModule: "AND3",
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR"],
+  },
+  {
+    id: 10,
+    title: "Lv10: OR3",
+    description:
+      "3つの入力a,b,cのいずれかが1ならoutが1になる回路を作ってください。",
+    inputNames: ["a", "b", "c"],
+    outputNames: ["out"],
+    testCases: [
+      tc({ a: false, b: false, c: false }, { out: false }),
+      tc({ a: false, b: false, c: true }, { out: true }),
+      tc({ a: false, b: true, c: false }, { out: true }),
+      tc({ a: false, b: true, c: true }, { out: true }),
+      tc({ a: true, b: false, c: false }, { out: true }),
+      tc({ a: true, b: false, c: true }, { out: true }),
+      tc({ a: true, b: true, c: false }, { out: true }),
+      tc({ a: true, b: true, c: true }, { out: true }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR c BITIN\nVAR out BITOUT`,
+    editableCode: `VAR o0 OR
+VAR o1 OR
+WIRE a _ TO o0 i0
+WIRE b _ TO o0 i1
+WIRE o0 _ TO o1 i0
+WIRE c _ TO o1 i1
+WIRE o1 _ TO out _
+`,
+    unlocksModule: "OR3",
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3"],
   },
 ];

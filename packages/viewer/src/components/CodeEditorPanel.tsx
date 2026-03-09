@@ -17,7 +17,10 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
     onDirty?.();
   };
 
-  const fullCode = puzzle ? `${puzzle.fixedCode}\n${code}` : code;
+  const fullCode = puzzle
+    ? `${puzzle.moduleDefs}${puzzle.fixedCode}\n${code}`
+    : code;
+  const hasModules = puzzle?.availableModules && puzzle.availableModules.length > 0;
 
   return (
     <div className="code-editor-panel">
@@ -27,6 +30,14 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
             <h3>{puzzle.title}</h3>
           </div>
           <div className="puzzle-description">{puzzle.description}</div>
+          {hasModules && (
+            <div className="available-modules">
+              <span className="available-modules-label">利用可能モジュール: </span>
+              <span className="available-modules-list">
+                {puzzle.availableModules!.join(", ")}
+              </span>
+            </div>
+          )}
           <pre className="fixed-code">{puzzle.fixedCode}</pre>
         </>
       )}

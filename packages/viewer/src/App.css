@@ -322,3 +322,51 @@
 .next-level-btn:hover {
   background: #3a8eef;
 }
+
+/* Available modules label */
+.available-modules {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #1a2a1a;
+  border: 1px solid #3a5a3a;
+  border-radius: 6px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.available-modules-label {
+  color: #7dff82;
+  font-weight: 600;
+}
+
+.available-modules-list {
+  color: #aad4ab;
+  font-family: monospace;
+}
+
+/* Unlock notification */
+.unlock-message {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: #1a3a1a;
+  border: 1px solid #4a4;
+  border-radius: 8px;
+  color: #7dff82;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: fadeInOut 4s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
