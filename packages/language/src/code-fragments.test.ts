@@ -5,6 +5,7 @@ import {
   DECODER_3BIT,
   NOR,
   NOT,
+  ON,
   OR,
   OR3,
   XNOR,
@@ -19,6 +20,17 @@ const getRunner = (program: string) => {
     return [...vm.run(new Map(inputs)).entries()];
   };
 };
+
+test("ON", () => {
+  const runner = getRunner(`
+    ${ON}
+    VAR out BITOUT
+
+    VAR on ON
+    WIRE on _ TO out _
+  `);
+  expect(runner([])).toEqual([["out", true]]);
+});
 
 test("NOT", () => {
   const runner = getRunner(`
