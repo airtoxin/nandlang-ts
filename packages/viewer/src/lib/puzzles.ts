@@ -27,6 +27,8 @@ export type Puzzle = {
   editableCode: string;
   unlocksModule?: string;
   availableModules?: string[];
+  /** ヘルプマニュアル内の関連セクションID */
+  helpSections?: string[];
 };
 
 function tc(
@@ -55,6 +57,7 @@ export const puzzles: Puzzle[] = [
     fixedCode: `VAR a BITIN\nVAR out BITOUT`,
     editableCode: `WIRE a _ TO out _
 `,
+    helpSections: ["syntax-wire", "mod-bitin", "mod-bitout"],
   },
   {
     id: 2,
@@ -77,6 +80,7 @@ WIRE b _ TO nand i1
 WIRE nand _ TO out _
 `,
     availableModules: ["NAND"],
+    helpSections: ["syntax-var", "syntax-wire", "mod-nand"],
   },
   {
     id: 3,
@@ -98,6 +102,7 @@ WIRE nand _ TO out _
 `,
     unlocksModule: "NOT",
     availableModules: ["NAND"],
+    helpSections: ["mod-nand", "gate-not"],
   },
   {
     id: 4,
@@ -123,6 +128,7 @@ WIRE not _ TO out _
 `,
     unlocksModule: "AND",
     availableModules: ["NAND", "NOT"],
+    helpSections: ["mod-nand", "gate-not", "gate-and"],
   },
   {
     id: 5,
@@ -150,6 +156,7 @@ WIRE nand _ TO out _
 `,
     unlocksModule: "OR",
     availableModules: ["NAND", "NOT"],
+    helpSections: ["mod-nand", "gate-not", "gate-or"],
   },
   {
     id: 6,
@@ -175,6 +182,7 @@ WIRE not _ TO out _
 `,
     unlocksModule: "NOR",
     availableModules: ["NAND", "NOT", "AND", "OR"],
+    helpSections: ["gate-nor"],
   },
   {
     id: 7,
@@ -204,6 +212,7 @@ WIRE and _ TO out _
 `,
     unlocksModule: "XOR",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR"],
+    helpSections: ["gate-xor"],
   },
   {
     id: 8,
@@ -229,6 +238,7 @@ WIRE not _ TO out _
 `,
     unlocksModule: "XNOR",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR"],
+    helpSections: ["gate-xnor"],
   },
   {
     id: 9,
@@ -259,6 +269,7 @@ WIRE a1 _ TO out _
 `,
     unlocksModule: "AND3",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR"],
+    helpSections: ["gate-and"],
   },
   {
     id: 10,
@@ -289,5 +300,6 @@ WIRE o1 _ TO out _
 `,
     unlocksModule: "OR3",
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3"],
+    helpSections: ["gate-or"],
   },
 ];

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Puzzle } from "../lib/puzzles";
+import { HelpManual } from "./HelpManual";
 
 type Props = {
   onCompile: (code: string) => void;
@@ -11,6 +12,7 @@ type Props = {
 
 export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "" }: Props) {
   const [code, setCode] = useState(puzzle?.editableCode ?? initialCode);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleChange = (value: string) => {
     setCode(value);
@@ -28,6 +30,13 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
         <>
           <div className="panel-header">
             <h3>{puzzle.title}</h3>
+            <button
+              className="help-btn"
+              onClick={() => setShowHelp(!showHelp)}
+              title="マニュアルを開く"
+            >
+              ?
+            </button>
           </div>
           <div className="puzzle-description">{puzzle.description}</div>
           {hasModules && (
@@ -44,6 +53,13 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
       {!puzzle && (
         <div className="panel-header">
           <h3>Sandbox</h3>
+          <button
+            className="help-btn"
+            onClick={() => setShowHelp(!showHelp)}
+            title="マニュアルを開く"
+          >
+            ?
+          </button>
         </div>
       )}
       <textarea
@@ -55,6 +71,12 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
         Compile
       </button>
       {error && <div className="error-display">{error}</div>}
+      {showHelp && (
+        <HelpManual
+          onClose={() => setShowHelp(false)}
+          highlightSections={puzzle?.helpSections}
+        />
+      )}
     </div>
   );
 }
