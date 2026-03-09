@@ -37,9 +37,9 @@ export const puzzles: Puzzle[] = [
       tc({ a: true }, { out: false }),
     ],
     fixedCode: `VAR a BITIN
-VAR out BITOUT`,
-    editableCode: `VAR nand NAND
-WIRE a _ TO nand i0
+VAR out BITOUT
+VAR nand NAND`,
+    editableCode: `WIRE a _ TO nand i0
 WIRE a _ TO nand i1
 WIRE nand _ TO out _
 `,
@@ -59,11 +59,11 @@ WIRE nand _ TO out _
     ],
     fixedCode: `VAR a BITIN
 VAR b BITIN
-VAR out BITOUT`,
-    editableCode: `VAR nand NAND
-WIRE a _ TO nand i0
+VAR out BITOUT
+VAR nand NAND
+VAR n2 NAND`,
+    editableCode: `WIRE a _ TO nand i0
 WIRE b _ TO nand i1
-VAR n2 NAND
 WIRE nand _ TO n2 i0
 WIRE nand _ TO n2 i1
 WIRE n2 _ TO out _
@@ -84,14 +84,14 @@ WIRE n2 _ TO out _
     ],
     fixedCode: `VAR a BITIN
 VAR b BITIN
-VAR out BITOUT`,
-    editableCode: `VAR na NAND
-WIRE a _ TO na i0
-WIRE a _ TO na i1
+VAR out BITOUT
+VAR na NAND
 VAR nb NAND
+VAR nand NAND`,
+    editableCode: `WIRE a _ TO na i0
+WIRE a _ TO na i1
 WIRE b _ TO nb i0
 WIRE b _ TO nb i1
-VAR nand NAND
 WIRE na _ TO nand i0
 WIRE nb _ TO nand i1
 WIRE nand _ TO out _
@@ -112,17 +112,17 @@ WIRE nand _ TO out _
     ],
     fixedCode: `VAR a BITIN
 VAR b BITIN
-VAR out BITOUT`,
-    editableCode: `VAR na NAND
-WIRE a _ TO na i0
-WIRE a _ TO na i1
+VAR out BITOUT
+VAR na NAND
 VAR nb NAND
+VAR or NAND
+VAR not NAND`,
+    editableCode: `WIRE a _ TO na i0
+WIRE a _ TO na i1
 WIRE b _ TO nb i0
 WIRE b _ TO nb i1
-VAR or NAND
 WIRE na _ TO or i0
 WIRE nb _ TO or i1
-VAR not NAND
 WIRE or _ TO not i0
 WIRE or _ TO not i1
 WIRE not _ TO out _
@@ -143,17 +143,17 @@ WIRE not _ TO out _
     ],
     fixedCode: `VAR a BITIN
 VAR b BITIN
-VAR out BITOUT`,
-    editableCode: `VAR nand NAND
-WIRE a _ TO nand i0
-WIRE b _ TO nand i1
+VAR out BITOUT
+VAR nand NAND
 VAR n1 NAND
+VAR n2 NAND
+VAR n3 NAND`,
+    editableCode: `WIRE a _ TO nand i0
+WIRE b _ TO nand i1
 WIRE a _ TO n1 i0
 WIRE nand _ TO n1 i1
-VAR n2 NAND
 WIRE nand _ TO n2 i0
 WIRE b _ TO n2 i1
-VAR n3 NAND
 WIRE n1 _ TO n3 i0
 WIRE n2 _ TO n3 i1
 WIRE n3 _ TO out _
@@ -182,9 +182,9 @@ WIRE n3 _ TO out _
     ],
     fixedCode: `VAR s BITIN
 VAR r BITIN
-VAR q BITOUT`,
-    editableCode: `VAR ff FLIPFLOP
-WIRE s _ TO ff s
+VAR q BITOUT
+VAR ff FLIPFLOP`,
+    editableCode: `WIRE s _ TO ff s
 WIRE r _ TO ff r
 WIRE ff _ TO q _
 `,
