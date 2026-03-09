@@ -9,6 +9,7 @@ type Props = {
   allPassed: boolean;
   onNextLevel: () => void;
   isLastLevel: boolean;
+  disabled?: boolean;
 };
 
 function StatusBadge({ status }: { status: TestCase["status"] }) {
@@ -56,6 +57,7 @@ export function TestCasePanel({
   allPassed,
   onNextLevel,
   isLastLevel,
+  disabled = false,
 }: Props) {
   if (inputNames.length === 0 && outputNames.length === 0) return null;
 
@@ -67,14 +69,14 @@ export function TestCasePanel({
           <button
             className="action-btn step-btn"
             onClick={onRunNext}
-            disabled={testCases.length === 0}
+            disabled={disabled || testCases.length === 0}
           >
             Step
           </button>
           <button
             className="action-btn run-btn"
             onClick={onRunAll}
-            disabled={testCases.length === 0}
+            disabled={disabled || testCases.length === 0}
           >
             Run All
           </button>

@@ -3,13 +3,19 @@ import type { Puzzle } from "../lib/puzzles";
 
 type Props = {
   onCompile: (code: string) => void;
+  onDirty?: () => void;
   error: string | null;
   puzzle?: Puzzle;
   initialCode?: string;
 };
 
-export function CodeEditorPanel({ onCompile, error, puzzle, initialCode = "" }: Props) {
+export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "" }: Props) {
   const [code, setCode] = useState(puzzle?.editableCode ?? initialCode);
+
+  const handleChange = (value: string) => {
+    setCode(value);
+    onDirty?.();
+  };
 
   const fullCode = puzzle ? `${puzzle.fixedCode}\n${code}` : code;
 
@@ -31,11 +37,11 @@ export function CodeEditorPanel({ onCompile, error, puzzle, initialCode = "" }: 
       )}
       <textarea
         value={code}
-        onChange={(e) => setCode(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         spellCheck={false}
       />
       <button className="compile-btn" onClick={() => onCompile(fullCode)}>
-        Compile & Run
+        Compile
       </button>
       {error && <div className="error-display">{error}</div>}
     </div>
