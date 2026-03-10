@@ -1,5 +1,5 @@
 import { Program as ProgramAst } from "../parser/ast";
-import { BitinModule, BitoutModule, createModule, FlipflopModule, NandModule } from "./module";
+import { BitinModule, BitoutModule, ByteinModule, ByteoutModule, createModule, FlipflopModule, NandModule } from "./module";
 import { Variable } from "./variable";
 
 export class Program {
@@ -12,19 +12,36 @@ export class Program {
         name: "Program",
         definitionStatements: this.programAst.statements,
       },
-      [new NandModule(), new BitinModule(), new BitoutModule(), new FlipflopModule()],
+      [new NandModule(), new BitinModule(), new BitoutModule(), new ByteinModule(), new ByteoutModule(), new FlipflopModule()],
     );
     this.variable = new ProgramModule().createVariable("PROGRAM");
   }
 
-  public run(inputSignals: Map<string, boolean>): Map<string, boolean> {
+  public run(inputSignals: Map<string, boolean | number>): Map<string, boolean | number> {
     for (const [name, value] of inputSignals.entries()) {
-      this.variable.inPorts.get(name)?.set(() => value);
+      if (typeof value === "boolean") {
+        this.variable.inPorts.get(name)?.set(() => value);
+      } else {
+        const ports = this.variable.byteInPorts.get(name);
+        if (ports) {
+          for (let i = 0; i < 8; i++) {
+            const bit = ((value >> i) & 1) === 1;
+            ports[i].set(() => bit);
+          }
+        }
+      }
     }
 
-    const outputSignals = new Map<string, boolean>();
+    const outputSignals = new Map<string, boolean | number>();
     for (const [name, port] of this.variable.outPorts.entries()) {
       outputSignals.set(name, port.value);
+    }
+    for (const [name, ports] of this.variable.byteOutPorts.entries()) {
+      let value = 0;
+      for (let i = 0; i < 8; i++) {
+        if (ports[i].value) value |= (1 << i);
+      }
+      outputSignals.set(name, value);
     }
 
     return outputSignals;

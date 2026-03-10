@@ -14,7 +14,7 @@ export class Vm {
     this.program = new Program(parseResult.data);
   }
 
-  public run(inputSignals: Map<string, boolean>): Map<string, boolean> {
+  public run(inputSignals: Map<string, boolean | number>): Map<string, boolean | number> {
     if (this.program == null) throw new Error(`No program compiled to run`);
     return this.program.run(inputSignals);
   }

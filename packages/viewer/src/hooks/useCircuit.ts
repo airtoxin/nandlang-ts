@@ -9,10 +9,10 @@ export function useCircuit() {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [inputNames, setInputNames] = useState<string[]>([]);
   const [outputNames, setOutputNames] = useState<string[]>([]);
-  const [inputSignals, setInputSignals] = useState<Map<string, boolean>>(
+  const [inputSignals, setInputSignals] = useState<Map<string, boolean | number>>(
     new Map(),
   );
-  const [outputSignals, setOutputSignals] = useState<Map<string, boolean>>(
+  const [outputSignals, setOutputSignals] = useState<Map<string, boolean | number>>(
     new Map(),
   );
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +33,10 @@ export function useCircuit() {
       setInputNames(graph.inputNames);
       setOutputNames(graph.outputNames);
 
-      const initialInputs = new Map<string, boolean>();
-      for (const name of graph.inputNames) {
-        initialInputs.set(name, false);
+      const initialInputs = new Map<string, boolean | number>();
+      for (const node of graph.nodes) {
+        if (node.data.moduleName === "BITIN") initialInputs.set(node.id, false);
+        else if (node.data.moduleName === "BYTEIN") initialInputs.set(node.id, 0);
       }
       setInputSignals(initialInputs);
 
@@ -53,6 +54,12 @@ export function useCircuit() {
         }
         if (node.data.moduleName === "BITIN") {
           return { ...node, data: { ...node.data, value: false } };
+        }
+        if (node.data.moduleName === "BYTEOUT") {
+          return { ...node, data: { ...node.data, value: outputs.get(node.id) ?? 0 } };
+        }
+        if (node.data.moduleName === "BYTEIN") {
+          return { ...node, data: { ...node.data, value: 0 } };
         }
         return node;
       });
@@ -89,6 +96,18 @@ export function useCircuit() {
                     data: { ...node.data, value: next.get(node.id) ?? false },
                   };
                 }
+                if (node.data.moduleName === "BYTEOUT") {
+                  return {
+                    ...node,
+                    data: { ...node.data, value: outputs.get(node.id) ?? 0 },
+                  };
+                }
+                if (node.data.moduleName === "BYTEIN") {
+                  return {
+                    ...node,
+                    data: { ...node.data, value: next.get(node.id) ?? 0 },
+                  };
+                }
                 return node;
               }),
             );
@@ -105,8 +124,8 @@ export function useCircuit() {
 
   const updateNodeSignals = useCallback(
     (
-      inputs: Map<string, boolean>,
-      outputs: Map<string, boolean>,
+      inputs: Map<string, boolean | number>,
+      outputs: Map<string, boolean | number>,
       allSignals: Map<string, boolean>,
     ) => {
       setNodes((prevNodes) =>
@@ -121,6 +140,18 @@ export function useCircuit() {
             return {
               ...node,
               data: { ...node.data, value: outputs.get(node.id) ?? false },
+            };
+          }
+          if (node.data.moduleName === "BYTEIN") {
+            return {
+              ...node,
+              data: { ...node.data, value: inputs.get(node.id) ?? 0 },
+            };
+          }
+          if (node.data.moduleName === "BYTEOUT") {
+            return {
+              ...node,
+              data: { ...node.data, value: outputs.get(node.id) ?? 0 },
             };
           }
           if (node.data.moduleName === "FLIPFLOP") {

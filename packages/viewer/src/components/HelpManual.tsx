@@ -379,6 +379,183 @@ VAR x NOT`}</pre>
       </>
     ),
   },
+  {
+    id: "mod-bytein",
+    title: "BYTEIN: バイト入力",
+    content: (
+      <>
+        <p>
+          0〜255の整数を受け取り、8ビットに分解して出力するモジュールです。
+          ビット0（o0）がLSB（最下位ビット）、ビット7（o7）がMSBです。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>o0</code></td><td>出力</td><td>ビット0（1の位）</td></tr>
+            <tr><td><code>o1</code></td><td>出力</td><td>ビット1（2の位）</td></tr>
+            <tr><td><code>o2</code></td><td>出力</td><td>ビット2（4の位）</td></tr>
+            <tr><td><code>o3</code>〜<code>o7</code></td><td>出力</td><td>ビット3〜7</td></tr>
+          </tbody>
+        </table>
+        <p>例: 値が42（= 00101010）のとき、o1=1, o3=1, o5=1、他は0</p>
+      </>
+    ),
+  },
+  {
+    id: "mod-byteout",
+    title: "BYTEOUT: バイト出力",
+    content: (
+      <>
+        <p>
+          8本のビット入力を受け取り、整数（0〜255）に組み立てて出力するモジュールです。
+          BYTEINの逆の動作をします。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>i0</code></td><td>入力</td><td>ビット0（1の位）</td></tr>
+            <tr><td><code>i1</code></td><td>入力</td><td>ビット1（2の位）</td></tr>
+            <tr><td><code>i2</code></td><td>入力</td><td>ビット2（4の位）</td></tr>
+            <tr><td><code>i3</code>〜<code>i7</code></td><td>入力</td><td>ビット3〜7</td></tr>
+          </tbody>
+        </table>
+        <p>出力値 = i0×1 + i1×2 + i2×4 + i3×8 + ... + i7×128</p>
+      </>
+    ),
+  },
+  {
+    id: "circuit-half-adder",
+    title: "Half Adder: 半加算器",
+    content: (
+      <>
+        <p>
+          1ビット同士の足し算を行う回路です。
+          2つの入力a, bの和をs（Sum: 合計）とc（Carry: 繰り上がり）で表します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>a</code>, <code>b</code></td><td>入力</td><td>足し合わせる2つのビット</td></tr>
+            <tr><td><code>s</code></td><td>出力</td><td>合計（Sum）</td></tr>
+            <tr><td><code>c</code></td><td>出力</td><td>繰り上がり（Carry）</td></tr>
+          </tbody>
+        </table>
+        <p>真理値表:</p>
+        <table>
+          <thead>
+            <tr><th>a</th><th>b</th><th>s</th><th>c</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>sの真理値表はXOR、cの真理値表はANDと同じです。</p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-full-adder",
+    title: "Full Adder: 全加算器（ADD）",
+    content: (
+      <>
+        <p>
+          下の桁からの繰り上がり（cin）も含めた1ビットの足し算を行います。
+          Full Adderを連結すれば多ビットの足し算が可能です。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>i0</code></td><td>入力</td><td>入力A</td></tr>
+            <tr><td><code>i1</code></td><td>入力</td><td>入力B</td></tr>
+            <tr><td><code>i2</code></td><td>入力</td><td>繰り上がり入力（Carry In）</td></tr>
+            <tr><td><code>o0</code></td><td>出力</td><td>合計（Sum）</td></tr>
+            <tr><td><code>o1</code></td><td>出力</td><td>繰り上がり出力（Carry Out）</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            Half Adderを2段使います。まずa XOR bで仮の合計を出し、
+            それとcinをもう一度XOR。繰り上がりは (a AND b) OR (仮の合計 AND cin) です。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-decoder",
+    title: "Decoder: デコーダ（DEC）",
+    content: (
+      <>
+        <p>
+          3ビットの2進数入力を解読し、対応する8本の出力線の1つだけを有効にします。
+          メモリのアドレス指定やマルチプレクサの制御に使われます。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>i0</code></td><td>入力</td><td>ビット0（LSB）</td></tr>
+            <tr><td><code>i1</code></td><td>入力</td><td>ビット1</td></tr>
+            <tr><td><code>i2</code></td><td>入力</td><td>ビット2（MSB）</td></tr>
+            <tr><td><code>o0</code>〜<code>o7</code></td><td>出力</td><td>デコード結果（1つだけ1）</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            各出力はAND3で実現します。入力が0であるべき箇所にはNOTを通してから接続します。
+            例: o5（= 101）は i0 AND NOT(i1) AND i2 です。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-encoder",
+    title: "Encoder: エンコーダ（ENC）",
+    content: (
+      <>
+        <p>
+          デコーダの逆の動作をします。8本の入力線のうち1本が有効なとき、
+          その番号を3ビットの2進数で出力します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>i0</code>〜<code>i7</code></td><td>入力</td><td>8本の入力（1本だけ1）</td></tr>
+            <tr><td><code>o0</code></td><td>出力</td><td>ビット0（LSB）</td></tr>
+            <tr><td><code>o1</code></td><td>出力</td><td>ビット1</td></tr>
+            <tr><td><code>o2</code></td><td>出力</td><td>ビット2（MSB）</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            各出力ビットは、そのビットが1になる入力線すべてのORです。
+            例: o0は奇数番号の入力（i1, i3, i5, i7）のOR。
+          </p>
+        </details>
+      </>
+    ),
+  },
 ];
 
 export function HelpManual({ onClose, highlightSections }: Props) {
