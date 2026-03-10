@@ -6,15 +6,25 @@ type Props = {
   highlightSections?: string[];
 };
 
+type SectionCategory = "language" | "module" | "circuit";
+
 type Section = {
   id: string;
   title: string;
+  category: SectionCategory;
   content: ReactNode;
+};
+
+const categoryLabels: Record<SectionCategory, string> = {
+  language: "言語",
+  module: "モジュール",
+  circuit: "回路解説",
 };
 
 const sections: Section[] = [
   {
     id: "syntax-var",
+    category: "language",
     title: "VAR: ノードを配置する",
     content: (
       <>
@@ -35,6 +45,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "syntax-wire",
+    category: "language",
     title: "WIRE: ノード同士を結線する",
     content: (
       <>
@@ -54,6 +65,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "syntax-comment",
+    category: "language",
     title: "コメント",
     content: (
       <>
@@ -66,6 +78,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-bitin",
+    category: "module",
     title: "BITIN: 外部入力",
     content: (
       <>
@@ -87,6 +100,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-bitout",
+    category: "module",
     title: "BITOUT: 外部出力",
     content: (
       <>
@@ -108,6 +122,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-nand",
+    category: "module",
     title: "NAND: 基本ゲート",
     content: (
       <>
@@ -143,6 +158,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-on",
+    category: "module",
     title: "ON: 常時1出力",
     content: (
       <>
@@ -173,6 +189,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-not",
+    category: "module",
     title: "NOT: 反転",
     content: (
       <>
@@ -206,6 +223,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-and",
+    category: "module",
     title: "AND: 論理積",
     content: (
       <>
@@ -241,6 +259,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-or",
+    category: "module",
     title: "OR: 論理和",
     content: (
       <>
@@ -276,6 +295,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-nor",
+    category: "module",
     title: "NOR: 否定論理和",
     content: (
       <>
@@ -311,6 +331,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-xor",
+    category: "module",
     title: "XOR: 排他的論理和",
     content: (
       <>
@@ -346,6 +367,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "gate-xnor",
+    category: "module",
     title: "XNOR: 排他的否定論理和",
     content: (
       <>
@@ -381,6 +403,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-bytein",
+    category: "module",
     title: "BYTEIN: バイト入力",
     content: (
       <>
@@ -405,6 +428,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-byteout",
+    category: "module",
     title: "BYTEOUT: バイト出力",
     content: (
       <>
@@ -429,6 +453,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-half-adder",
+    category: "circuit",
     title: "Half Adder: 半加算器",
     content: (
       <>
@@ -467,7 +492,8 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-full-adder",
-    title: "Full Adder: 全加算器（ADD）",
+    category: "module",
+    title: "ADD: 全加算器",
     content: (
       <>
         <p>
@@ -498,7 +524,8 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-decoder",
-    title: "Decoder: デコーダ（DEC）",
+    category: "module",
+    title: "DEC: デコーダ",
     content: (
       <>
         <p>
@@ -528,7 +555,8 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-encoder",
-    title: "Encoder: エンコーダ（ENC）",
+    category: "module",
+    title: "ENC: エンコーダ",
     content: (
       <>
         <p>
@@ -558,6 +586,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "mod-flipflop",
+    category: "module",
     title: "FLIPFLOP: 記憶素子",
     content: (
       <>
@@ -594,6 +623,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-sr-latch",
+    category: "circuit",
     title: "SR Latch: セット・リセットラッチ",
     content: (
       <>
@@ -621,7 +651,8 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-d-latch",
-    title: "D Latch: データラッチ（DLATCH）",
+    category: "module",
+    title: "DLATCH: データラッチ",
     content: (
       <>
         <p>
@@ -651,6 +682,7 @@ VAR x NOT`}</pre>
   },
   {
     id: "circuit-byte-memory",
+    category: "module",
     title: "Byte Memory: バイトメモリ",
     content: (
       <>
@@ -767,18 +799,22 @@ export function HelpManual({ onClose, highlightSections }: Props) {
                 })}
               </div>
             )}
-            <div className="help-toc-group">
-              <div className="help-toc-group-label">全セクション</div>
-              {sections.map((sec) => (
-                <button
-                  key={sec.id}
-                  className={`help-toc-item ${highlightSet.has(sec.id) ? "help-toc-item-hint" : ""}`}
-                  onClick={() => setSelectedSection(sec.id)}
-                >
-                  {sec.title}
-                </button>
-              ))}
-            </div>
+            {(["language", "module", "circuit"] as SectionCategory[]).map((cat) => (
+              <div className="help-toc-group" key={cat}>
+                <div className="help-toc-group-label">{categoryLabels[cat]}</div>
+                {sections
+                  .filter((sec) => sec.category === cat)
+                  .map((sec) => (
+                    <button
+                      key={sec.id}
+                      className={`help-toc-item ${highlightSet.has(sec.id) ? "help-toc-item-hint" : ""}`}
+                      onClick={() => setSelectedSection(sec.id)}
+                    >
+                      {sec.title}
+                    </button>
+                  ))}
+              </div>
+            ))}
           </>
         )}
       </div>

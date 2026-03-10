@@ -5,7 +5,18 @@ import type { NodeChange, EdgeChange } from "@xyflow/react";
 import { CodeEditorPanel } from "../components/CodeEditorPanel";
 import { CircuitDiagramPanel } from "../components/CircuitDiagramPanel";
 import { useCircuit } from "../hooks/useCircuit";
+import {
+  ON, NOT, AND, AND3, OR, OR3, NOR, XOR, XNOR,
+  ADD, DEC, ENC, BYTEADD, DLATCH,
+} from "@nandlang-ts/language/code-fragments";
 import "./SandboxPage.css";
+
+const PRELOADED_MODULES = `${ON}${NOT}${AND}${AND3}${OR}${OR3}${NOR}${XOR}${XNOR}${ADD}${DEC}${ENC}${BYTEADD}${DLATCH}`;
+
+const AVAILABLE_MODULE_NAMES = [
+  "ON", "NOT", "AND", "AND3", "OR", "OR3", "NOR", "XOR", "XNOR",
+  "ADD", "DEC", "ENC", "BYTEADD", "DLATCH",
+];
 
 const DEFAULT_CODE = `VAR a BITIN
 VAR b BITIN
@@ -22,7 +33,7 @@ export function SandboxPage() {
 
   const handleCompile = useCallback(
     (code: string) => {
-      circuit.compile(code);
+      circuit.compile(`${PRELOADED_MODULES}${code}`);
       setFitViewTrigger((c) => c + 1);
     },
     [circuit],
@@ -52,6 +63,7 @@ export function SandboxPage() {
           onCompile={handleCompile}
           error={circuit.error}
           initialCode={DEFAULT_CODE}
+          availableModules={AVAILABLE_MODULE_NAMES}
         />
       </div>
       <CircuitDiagramPanel

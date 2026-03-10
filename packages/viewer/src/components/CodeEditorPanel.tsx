@@ -9,9 +9,10 @@ type Props = {
   error: string | null;
   puzzle?: Puzzle;
   initialCode?: string;
+  availableModules?: string[];
 };
 
-export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "" }: Props) {
+export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode = "", availableModules }: Props) {
   const [code, setCode] = useState(puzzle?.editableCode ?? initialCode);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -23,7 +24,8 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
   const fullCode = puzzle
     ? `${puzzle.moduleDefs}${puzzle.fixedCode}\n${code}`
     : code;
-  const hasModules = puzzle?.availableModules && puzzle.availableModules.length > 0;
+  const moduleList = puzzle?.availableModules ?? availableModules;
+  const hasModules = moduleList && moduleList.length > 0;
 
   return (
     <div className="code-editor-panel">
@@ -45,7 +47,7 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
             <div className="available-modules">
               <span className="available-modules-label">利用可能モジュール: </span>
               <span className="available-modules-list">
-                {puzzle.availableModules!.join(", ")}
+                {moduleList!.join(", ")}
               </span>
             </div>
           )}
@@ -53,16 +55,26 @@ export function CodeEditorPanel({ onCompile, onDirty, error, puzzle, initialCode
         </>
       )}
       {!puzzle && (
-        <div className="panel-header">
-          <h3>Sandbox</h3>
-          <button
-            className="help-btn"
-            onClick={() => setShowHelp(!showHelp)}
-            title="マニュアルを開く"
-          >
-            ?
-          </button>
-        </div>
+        <>
+          <div className="panel-header">
+            <h3>Sandbox</h3>
+            <button
+              className="help-btn"
+              onClick={() => setShowHelp(!showHelp)}
+              title="マニュアルを開く"
+            >
+              ?
+            </button>
+          </div>
+          {hasModules && (
+            <div className="available-modules">
+              <span className="available-modules-label">利用可能モジュール: </span>
+              <span className="available-modules-list">
+                {moduleList!.join(", ")}
+              </span>
+            </div>
+          )}
+        </>
       )}
       <textarea
         value={code}
