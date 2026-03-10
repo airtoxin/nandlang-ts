@@ -17,7 +17,17 @@ type OnTestRun = (
 
 export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const testCasesRef = useRef<TestCase[]>([]);
+  testCasesRef.current = testCases;
+
   const vmRef = useRef<Vm | null>(null);
+  const indexRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onTestRunRef = useRef(onTestRun);
+  onTestRunRef.current = onTestRun;
 
   const loadTestCases = useCallback((puzzleTestCases: PuzzleTestCase[]) => {
     setTestCases(
@@ -30,66 +40,20 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
     );
   }, []);
 
-  const runIndexRef = useRef<number | null>(null);
-  const runVmRef = useRef<Vm | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const onTestRunRef = useRef(onTestRun);
-  onTestRunRef.current = onTestRun;
-
-  const runStep = useCallback(() => {
-    const idx = runIndexRef.current;
-    const vm = runVmRef.current;
-    if (idx === null || !vm) return;
-
-    setTestCases((prev) => {
-      if (idx >= prev.length) {
-        runIndexRef.current = null;
-        return prev;
-      }
-      const tc = prev[idx];
-      const actualOutputs = vm.run(tc.inputs);
-      const pass = [...tc.expectedOutputs.entries()].every(
-        ([name, expected]) => actualOutputs.get(name) === expected,
-      );
-      const result = [...prev];
-      result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
-
-      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
-
-      if (pass && idx + 1 < prev.length) {
-        runIndexRef.current = idx + 1;
-        timerRef.current = setTimeout(runStep, 50);
-      } else {
-        runIndexRef.current = null;
-      }
-
-      return result;
-    });
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const runAll = useCallback(() => {
-    if (!code) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
+  const compileVm = useCallback((): boolean => {
+    if (!code) return false;
     try {
       const vm = new Vm();
       vm.compile(code);
       vmRef.current = vm;
-      runVmRef.current = vm;
-
-      // Reset all to idle before starting
-      setTestCases((prev) =>
-        prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
-      );
-      runIndexRef.current = 0;
-      timerRef.current = setTimeout(runStep, 50);
+      return true;
     } catch {
       setTestCases((prev) =>
         prev.map((tc, i) =>
@@ -98,69 +62,113 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
             : tc,
         ),
       );
+      return false;
     }
-  }, [code, runStep]);
-
-  const stepIndexRef = useRef<number>(0);
-  const stepVmRef = useRef<Vm | null>(null);
-
-  const runNext = useCallback(() => {
-    if (!code) return;
-    // First step: compile and reset
-    if (!stepVmRef.current) {
-      try {
-        const vm = new Vm();
-        vm.compile(code);
-        stepVmRef.current = vm;
-        stepIndexRef.current = 0;
-        setTestCases((prev) =>
-          prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
-        );
-      } catch {
-        setTestCases((prev) =>
-          prev.map((tc, i) =>
-            i === 0
-              ? { ...tc, actualOutputs: null, status: "fail" as const }
-              : tc,
-          ),
-        );
-        return;
-      }
-    }
-
-    const vm = stepVmRef.current;
-    const idx = stepIndexRef.current;
-
-    setTestCases((prev) => {
-      if (idx >= prev.length) return prev;
-      const tc = prev[idx];
-      const actualOutputs = vm.run(tc.inputs);
-      const pass = [...tc.expectedOutputs.entries()].every(
-        ([name, expected]) => actualOutputs.get(name) === expected,
-      );
-      const result = [...prev];
-      result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
-
-      onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
-
-      if (pass && idx + 1 < prev.length) {
-        stepIndexRef.current = idx + 1;
-      } else {
-        // Stop on fail or completion
-        stepVmRef.current = null;
-      }
-
-      return result;
-    });
   }, [code]);
 
-  const resetResults = useCallback(() => {
-    stepVmRef.current = null;
-    stepIndexRef.current = 0;
+  // Execute a single test case at the current index
+  const executeStep = useCallback((): boolean => {
+    const vm = vmRef.current;
+    const idx = indexRef.current;
+    if (!vm || idx >= testCasesRef.current.length) return false;
+
+    const tc = testCasesRef.current[idx];
+    const actualOutputs = vm.run(tc.inputs);
+    const pass = [...tc.expectedOutputs.entries()].every(
+      ([name, expected]) => actualOutputs.get(name) === expected,
+    );
+
+    setTestCases((prev) => {
+      const result = [...prev];
+      result[idx] = { ...tc, actualOutputs, status: pass ? "pass" : "fail" };
+      return result;
+    });
+
+    onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
+
+    if (pass && idx + 1 < testCasesRef.current.length) {
+      indexRef.current = idx + 1;
+      return true; // has next
+    }
+    return false; // done or failed
+  }, []);
+
+  const autoStep = useCallback(() => {
+    const hasNext = executeStep();
+    if (hasNext) {
+      timerRef.current = setTimeout(autoStep, 100);
+    } else {
+      setIsRunning(false);
+    }
+  }, [executeStep]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => clearTimer();
+  }, [clearTimer]);
+
+  // > Step: execute one test case
+  const runNext = useCallback(() => {
+    if (!vmRef.current) {
+      if (!compileVm()) return;
+      indexRef.current = 0;
+      setTestCases((prev) =>
+        prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
+      );
+    }
+    executeStep();
+  }, [compileVm, executeStep]);
+
+  // >> Run All: compile and auto-run all test cases
+  const runAll = useCallback(() => {
+    clearTimer();
+    if (!compileVm()) return;
+    indexRef.current = 0;
     setTestCases((prev) =>
       prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
     );
-  }, []);
+    setIsRunning(true);
+    setIsPaused(false);
+    timerRef.current = setTimeout(autoStep, 100);
+  }, [compileVm, clearTimer, autoStep]);
+
+  // || Pause: suspend auto-run, keep state
+  const pause = useCallback(() => {
+    clearTimer();
+    setIsRunning(false);
+    setIsPaused(true);
+  }, [clearTimer]);
+
+  // >> Resume: continue auto-run from paused state
+  const resume = useCallback(() => {
+    if (!vmRef.current) return;
+    setIsRunning(true);
+    setIsPaused(false);
+    timerRef.current = setTimeout(autoStep, 100);
+  }, [autoStep]);
+
+  // □ Stop: stop and reset all results
+  const stop = useCallback(() => {
+    clearTimer();
+    vmRef.current = null;
+    indexRef.current = 0;
+    setIsRunning(false);
+    setIsPaused(false);
+    setTestCases((prev) =>
+      prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
+    );
+  }, [clearTimer]);
+
+  const resetResults = useCallback(() => {
+    clearTimer();
+    vmRef.current = null;
+    indexRef.current = 0;
+    setIsRunning(false);
+    setIsPaused(false);
+    setTestCases((prev) =>
+      prev.map((tc) => ({ ...tc, actualOutputs: null, status: "idle" as const })),
+    );
+  }, [clearTimer]);
 
   const allPassed =
     testCases.length > 0 && testCases.every((tc) => tc.status === "pass");
@@ -170,7 +178,12 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
     loadTestCases,
     runAll,
     runNext,
+    pause,
+    resume,
+    stop,
     resetResults,
     allPassed,
+    isRunning,
+    isPaused,
   };
 }
