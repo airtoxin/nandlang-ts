@@ -549,13 +549,49 @@ WIRE or22 _ TO o2 _
     inputNames: ["a", "b"],
     outputNames: ["out"],
     testCases: [
+      // 基本: ゼロとの加算
       tc({ a: 0, b: 0 }, { out: 0 }),
       tc({ a: 1, b: 0 }, { out: 1 }),
       tc({ a: 0, b: 1 }, { out: 1 }),
+      tc({ a: 0, b: 255 }, { out: 255 }),
+      tc({ a: 255, b: 0 }, { out: 255 }),
+      // 小さな値
       tc({ a: 1, b: 1 }, { out: 2 }),
+      tc({ a: 2, b: 3 }, { out: 5 }),
+      tc({ a: 7, b: 8 }, { out: 15 }),
+      tc({ a: 10, b: 20 }, { out: 30 }),
+      // 2のべき乗
+      tc({ a: 1, b: 2 }, { out: 3 }),
+      tc({ a: 4, b: 8 }, { out: 12 }),
+      tc({ a: 16, b: 32 }, { out: 48 }),
+      tc({ a: 64, b: 128 }, { out: 192 }),
+      tc({ a: 64, b: 64 }, { out: 128 }),
+      tc({ a: 128, b: 128 }, { out: 0 }), // オーバーフロー
+      // 交換法則 a+b = b+a
       tc({ a: 42, b: 58 }, { out: 100 }),
+      tc({ a: 58, b: 42 }, { out: 100 }),
+      tc({ a: 99, b: 1 }, { out: 100 }),
+      tc({ a: 1, b: 99 }, { out: 100 }),
+      // 境界値
       tc({ a: 127, b: 128 }, { out: 255 }),
+      tc({ a: 254, b: 1 }, { out: 255 }),
+      tc({ a: 1, b: 254 }, { out: 255 }),
+      tc({ a: 127, b: 127 }, { out: 254 }),
+      // 繰り上がり連鎖
+      tc({ a: 15, b: 1 }, { out: 16 }),   // 00001111 + 1 = 00010000
+      tc({ a: 255, b: 1 }, { out: 0 }),   // 全ビット繰り上がり
+      tc({ a: 127, b: 1 }, { out: 128 }), // 01111111 + 1 = 10000000
+      // オーバーフロー
       tc({ a: 200, b: 100 }, { out: 44 }),
+      tc({ a: 255, b: 255 }, { out: 254 }),
+      tc({ a: 200, b: 200 }, { out: 144 }),
+      tc({ a: 130, b: 130 }, { out: 4 }),
+      // 同じ値の加算
+      tc({ a: 50, b: 50 }, { out: 100 }),
+      tc({ a: 100, b: 100 }, { out: 200 }),
+      // 各ビット位置の検証
+      tc({ a: 170, b: 85 }, { out: 255 }),  // 10101010 + 01010101 = 11111111
+      tc({ a: 85, b: 170 }, { out: 255 }),  // 交換法則
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR a BYTEIN\nVAR b BYTEIN\nVAR out BYTEOUT`,
@@ -618,11 +654,39 @@ WIRE add7 o0 TO out i7
     inputNames: ["s", "r"],
     outputNames: ["q"],
     testCases: [
+      // 初期状態: hold → 0
       tc({ s: false, r: false }, { q: false }),
+      // セット → 1
+      tc({ s: true, r: false }, { q: true }),
+      // hold → 1を保持
+      tc({ s: false, r: false }, { q: true }),
+      tc({ s: false, r: false }, { q: true }),
+      // リセット → 0
+      tc({ s: false, r: true }, { q: false }),
+      // hold → 0を保持
+      tc({ s: false, r: false }, { q: false }),
+      tc({ s: false, r: false }, { q: false }),
+      // セット → 1
+      tc({ s: true, r: false }, { q: true }),
+      // 連続セット → 1のまま
+      tc({ s: true, r: false }, { q: true }),
+      // hold → 1を保持
+      tc({ s: false, r: false }, { q: true }),
+      // リセット → 0
+      tc({ s: false, r: true }, { q: false }),
+      // 連続リセット → 0のまま
+      tc({ s: false, r: true }, { q: false }),
+      // hold → 0を保持
+      tc({ s: false, r: false }, { q: false }),
+      // セット→リセットの素早い切り替え
+      tc({ s: true, r: false }, { q: true }),
+      tc({ s: false, r: true }, { q: false }),
+      tc({ s: true, r: false }, { q: true }),
+      tc({ s: false, r: true }, { q: false }),
+      // 最後にセットして保持確認
       tc({ s: true, r: false }, { q: true }),
       tc({ s: false, r: false }, { q: true }),
-      tc({ s: false, r: true }, { q: false }),
-      tc({ s: false, r: false }, { q: false }),
+      tc({ s: false, r: false }, { q: true }),
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR s BITIN\nVAR r BITIN\nVAR q BITOUT`,
@@ -652,12 +716,44 @@ WIRE ff _ TO q _
     inputNames: ["d", "e"],
     outputNames: ["q"],
     testCases: [
+      // 初期状態: enable=0, hold → 0
+      tc({ d: false, e: false }, { q: false }),
+      // d=1でもenable=0なら書き込まない → 0のまま
+      tc({ d: true, e: false }, { q: false }),
+      // 1を書き込み
+      tc({ d: true, e: true }, { q: true }),
+      // hold → 1を保持
+      tc({ d: false, e: false }, { q: true }),
+      tc({ d: true, e: false }, { q: true }),
+      tc({ d: false, e: false }, { q: true }),
+      // 0を書き込み
+      tc({ d: false, e: true }, { q: false }),
+      // hold → 0を保持
+      tc({ d: false, e: false }, { q: false }),
+      tc({ d: true, e: false }, { q: false }),
+      // 1を書き込み
+      tc({ d: true, e: true }, { q: true }),
+      // 同じ値を再書き込み → 変化なし
+      tc({ d: true, e: true }, { q: true }),
+      // hold → 1を保持
+      tc({ d: false, e: false }, { q: true }),
+      // 0を書き込み
+      tc({ d: false, e: true }, { q: false }),
+      // 0を再書き込み → 変化なし
+      tc({ d: false, e: true }, { q: false }),
+      // 書き込み→保持→書き込みの素早い切り替え
+      tc({ d: true, e: true }, { q: true }),
+      tc({ d: false, e: false }, { q: true }),
+      tc({ d: false, e: true }, { q: false }),
       tc({ d: false, e: false }, { q: false }),
       tc({ d: true, e: true }, { q: true }),
       tc({ d: false, e: false }, { q: true }),
       tc({ d: false, e: true }, { q: false }),
+      // 最後にhold確認
       tc({ d: true, e: false }, { q: false }),
+      tc({ d: false, e: false }, { q: false }),
       tc({ d: true, e: true }, { q: true }),
+      tc({ d: false, e: false }, { q: true }),
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR d BITIN\nVAR e BITIN\nVAR q BITOUT`,
@@ -692,12 +788,53 @@ WIRE ff _ TO q _
     inputNames: ["d", "w"],
     outputNames: ["q"],
     testCases: [
+      // 初期状態: hold → 0
       tc({ d: 0, w: false }, { q: 0 }),
+      // 値を入れてもwrite=0なら書き込まない
+      tc({ d: 123, w: false }, { q: 0 }),
+      // 42を書き込み
       tc({ d: 42, w: true }, { q: 42 }),
+      // hold → 42を保持
       tc({ d: 0, w: false }, { q: 42 }),
+      tc({ d: 255, w: false }, { q: 42 }),
+      tc({ d: 100, w: false }, { q: 42 }),
+      // 255を書き込み（全ビット1）
       tc({ d: 255, w: true }, { q: 255 }),
-      tc({ d: 100, w: false }, { q: 255 }),
+      // hold → 255を保持
+      tc({ d: 0, w: false }, { q: 255 }),
+      // 0を書き込み（全ビット0）
       tc({ d: 0, w: true }, { q: 0 }),
+      // hold → 0を保持
+      tc({ d: 255, w: false }, { q: 0 }),
+      // 各ビットパターン
+      tc({ d: 1, w: true }, { q: 1 }),       // 00000001
+      tc({ d: 0, w: false }, { q: 1 }),
+      tc({ d: 128, w: true }, { q: 128 }),   // 10000000
+      tc({ d: 0, w: false }, { q: 128 }),
+      tc({ d: 170, w: true }, { q: 170 }),   // 10101010
+      tc({ d: 0, w: false }, { q: 170 }),
+      tc({ d: 85, w: true }, { q: 85 }),     // 01010101
+      tc({ d: 0, w: false }, { q: 85 }),
+      // 上書き
+      tc({ d: 100, w: true }, { q: 100 }),
+      tc({ d: 200, w: true }, { q: 200 }),   // 連続書き込み
+      tc({ d: 50, w: true }, { q: 50 }),
+      // hold後に確認
+      tc({ d: 0, w: false }, { q: 50 }),
+      tc({ d: 255, w: false }, { q: 50 }),
+      // 2のべき乗
+      tc({ d: 2, w: true }, { q: 2 }),
+      tc({ d: 4, w: true }, { q: 4 }),
+      tc({ d: 8, w: true }, { q: 8 }),
+      tc({ d: 16, w: true }, { q: 16 }),
+      tc({ d: 32, w: true }, { q: 32 }),
+      tc({ d: 64, w: true }, { q: 64 }),
+      // 最後にholdで確認
+      tc({ d: 0, w: false }, { q: 64 }),
+      tc({ d: 255, w: false }, { q: 64 }),
+      // 同じ値の再書き込み
+      tc({ d: 64, w: true }, { q: 64 }),
+      tc({ d: 0, w: false }, { q: 64 }),
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}${DLATCH}`,
     fixedCode: `VAR d BYTEIN\nVAR w BITIN\nVAR q BYTEOUT`,
