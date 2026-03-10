@@ -5,10 +5,10 @@ export class Vm {
   private program: Program | null = null;
 
   public compile(programString: string): void {
-    const parseResult = parseProgram([...programString]);
+    const parseResult = parseProgram(programString);
     if (!parseResult.success)
       throw new Error(
-        `Program parse error, near ...${parseResult.rest.slice(0, 20).join("")}...`,
+        `Program parse error, near ...${parseResult.rest.slice(0, 20)}...`,
       );
 
     this.program = new Program(parseResult.data);

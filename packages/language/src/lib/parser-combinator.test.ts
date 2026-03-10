@@ -15,32 +15,29 @@ import { digit } from "../parser/parser";
 
 describe("anyChar", () => {
   test("succeeds with non-empty input", () => {
-    expect(anyChar([..."abc"])).toMatchInlineSnapshot(`
+    expect(anyChar("abc", 0)).toMatchInlineSnapshot(`
       {
         "data": "a",
-        "rest": [
-          "b",
-          "c",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
   });
 
   test("succeeds with empty string input", () => {
-    expect(anyChar([""])).toMatchInlineSnapshot(`
+    expect(anyChar("x", 0)).toMatchInlineSnapshot(`
       {
-        "data": "",
-        "rest": [],
+        "data": "x",
+        "pos": 1,
         "success": true,
       }
     `);
   });
 
   test("fails with empty input", () => {
-    expect(anyChar([])).toMatchInlineSnapshot(`
+    expect(anyChar("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -49,23 +46,19 @@ describe("anyChar", () => {
 
 describe("eof", () => {
   test("succeeds with empty input", () => {
-    expect(eof([])).toMatchInlineSnapshot(`
+    expect(eof("", 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [],
+        "pos": 0,
         "success": true,
       }
     `);
   });
 
   test("fails with non-empty input", () => {
-    expect(eof([..."abc"])).toMatchInlineSnapshot(`
+    expect(eof("abc", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "a",
-          "b",
-          "c",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -75,13 +68,10 @@ describe("eof", () => {
 describe("char", () => {
   test("succeeds when input matches target character", () => {
     const parser = char("a");
-    expect(parser([..."abc"])).toMatchInlineSnapshot(`
+    expect(parser("abc", 0)).toMatchInlineSnapshot(`
       {
         "data": "a",
-        "rest": [
-          "b",
-          "c",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
@@ -89,13 +79,9 @@ describe("char", () => {
 
   test("fails when input does not match target character", () => {
     const parser = char("a");
-    expect(parser([..."cba"])).toMatchInlineSnapshot(`
+    expect(parser("cba", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "c",
-          "b",
-          "a",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -103,9 +89,9 @@ describe("char", () => {
 
   test("fails with empty input", () => {
     const parser = char("a");
-    expect(parser([])).toMatchInlineSnapshot(`
+    expect(parser("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -115,13 +101,10 @@ describe("char", () => {
 describe("or", () => {
   test("succeeds with first parser", () => {
     const parser = or(char("a"), char("b"));
-    expect(parser([..."abc"])).toMatchInlineSnapshot(`
+    expect(parser("abc", 0)).toMatchInlineSnapshot(`
       {
         "data": "a",
-        "rest": [
-          "b",
-          "c",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
@@ -129,13 +112,10 @@ describe("or", () => {
 
   test("succeeds with second parser", () => {
     const parser = or(char("a"), char("b"));
-    expect(parser([..."bca"])).toMatchInlineSnapshot(`
+    expect(parser("bca", 0)).toMatchInlineSnapshot(`
       {
         "data": "b",
-        "rest": [
-          "c",
-          "a",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
@@ -143,9 +123,9 @@ describe("or", () => {
 
   test("fails with empty input", () => {
     const parser = or(char("a"), char("b"));
-    expect(parser([])).toMatchInlineSnapshot(`
+    expect(parser("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -153,13 +133,9 @@ describe("or", () => {
 
   test("fails with no match", () => {
     const parser = or(char("a"), char("b"));
-    expect(parser([..."cab"])).toMatchInlineSnapshot(`
+    expect(parser("cab", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "c",
-          "a",
-          "b",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -169,13 +145,10 @@ describe("or", () => {
 describe("not", () => {
   test("succeeds when input does not match the target pattern", () => {
     const parser = not(char("a"));
-    expect(parser([..."ba"])).toMatchInlineSnapshot(`
+    expect(parser("ba", 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [
-          "b",
-          "a",
-        ],
+        "pos": 0,
         "success": true,
       }
     `);
@@ -183,13 +156,9 @@ describe("not", () => {
 
   test("fails when input matches the target pattern", () => {
     const parser = not(char("a"));
-    expect(parser([..."abc"])).toMatchInlineSnapshot(`
+    expect(parser("abc", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "a",
-          "b",
-          "c",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -199,17 +168,14 @@ describe("not", () => {
 describe("seq", () => {
   test("succeeds when input matches parser sequence", () => {
     const parser = seq(char("a"), char("b"), char("c"));
-    expect(parser([..."abcde"])).toMatchInlineSnapshot(`
+    expect(parser("abcde", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
           "b",
           "c",
         ],
-        "rest": [
-          "d",
-          "e",
-        ],
+        "pos": 3,
         "success": true,
       }
     `);
@@ -217,9 +183,9 @@ describe("seq", () => {
 
   test("fails when input is shorter than parser sequence", () => {
     const parser = seq(char("a"), char("b"), char("c"));
-    expect(parser([..."ab"])).toMatchInlineSnapshot(`
+    expect(parser("ab", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 2,
         "success": false,
       }
     `);
@@ -227,13 +193,9 @@ describe("seq", () => {
 
   test("failed when input sequence has same kind of parser sequence but that is not same order", () => {
     const parser = seq(char("a"), char("b"), char("c"));
-    expect(parser([..."cba"])).toMatchInlineSnapshot(`
+    expect(parser("cba", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "c",
-          "b",
-          "a",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -241,9 +203,9 @@ describe("seq", () => {
 
   test("fails with empty input", () => {
     const parser = seq(char("a"), char("b"), char("c"));
-    expect(parser([])).toMatchInlineSnapshot(`
+    expect(parser("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -253,7 +215,7 @@ describe("seq", () => {
 describe("rep", () => {
   test("succeeds with repeated matches", () => {
     const parser = rep(char("a"));
-    expect(parser([..."aaaaaaabcde"])).toMatchInlineSnapshot(`
+    expect(parser("aaaaaaabcde", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
@@ -264,12 +226,7 @@ describe("rep", () => {
           "a",
           "a",
         ],
-        "rest": [
-          "b",
-          "c",
-          "d",
-          "e",
-        ],
+        "pos": 7,
         "success": true,
       }
     `);
@@ -277,10 +234,10 @@ describe("rep", () => {
 
   test("succeeds with min=0 for empty input", () => {
     const parser = rep(char("a"));
-    expect(parser([])).toMatchInlineSnapshot(`
+    expect(parser("", 0)).toMatchInlineSnapshot(`
       {
         "data": [],
-        "rest": [],
+        "pos": 0,
         "success": true,
       }
     `);
@@ -288,7 +245,7 @@ describe("rep", () => {
 
   test("succeeds with min=3 matches", () => {
     const parser = rep(char("a"), 3);
-    expect(parser([..."aaaa"])).toMatchInlineSnapshot(`
+    expect(parser("aaaa", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
@@ -296,27 +253,24 @@ describe("rep", () => {
           "a",
           "a",
         ],
-        "rest": [],
+        "pos": 4,
         "success": true,
       }
     `);
-    expect(parser([..."aaa"])).toMatchInlineSnapshot(`
+    expect(parser("aaa", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
           "a",
           "a",
         ],
-        "rest": [],
+        "pos": 3,
         "success": true,
       }
     `);
-    expect(parser([..."aa"])).toMatchInlineSnapshot(`
+    expect(parser("aa", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "a",
-          "a",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -324,37 +278,35 @@ describe("rep", () => {
 
   test("succeeds with min=0 and max=3 matches", () => {
     const parser = rep(char("a"), 0, 3);
-    expect(parser([..."aaaa"])).toMatchInlineSnapshot(`
+    expect(parser("aaaa", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
           "a",
           "a",
         ],
-        "rest": [
-          "a",
-        ],
+        "pos": 3,
         "success": true,
       }
     `);
-    expect(parser([..."aaa"])).toMatchInlineSnapshot(`
+    expect(parser("aaa", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
           "a",
           "a",
         ],
-        "rest": [],
+        "pos": 3,
         "success": true,
       }
     `);
-    expect(parser([..."aa"])).toMatchInlineSnapshot(`
+    expect(parser("aa", 0)).toMatchInlineSnapshot(`
       {
         "data": [
           "a",
           "a",
         ],
-        "rest": [],
+        "pos": 2,
         "success": true,
       }
     `);
@@ -364,24 +316,16 @@ describe("rep", () => {
 describe("sub", () => {
   test("sub 0 from digit", () => {
     const parser = sub(digit, char("0"));
-    expect(parser([..."123"])).toMatchInlineSnapshot(`
+    expect(parser("123", 0)).toMatchInlineSnapshot(`
       {
         "data": "1",
-        "rest": [
-          "2",
-          "3",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
-    expect(parser([..."0123"])).toMatchInlineSnapshot(`
+    expect(parser("0123", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "0",
-          "1",
-          "2",
-          "3",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -391,13 +335,10 @@ describe("sub", () => {
 describe("str", () => {
   test("succeeds when input matches target string", () => {
     const parser = str("abc");
-    expect(parser([..."abcde"])).toMatchInlineSnapshot(`
+    expect(parser("abcde", 0)).toMatchInlineSnapshot(`
       {
         "data": "abc",
-        "rest": [
-          "d",
-          "e",
-        ],
+        "pos": 3,
         "success": true,
       }
     `);
@@ -405,12 +346,9 @@ describe("str", () => {
 
   test("fails with partial match", () => {
     const parser = str("abc");
-    expect(parser([..."abac"])).toMatchInlineSnapshot(`
+    expect(parser("abac", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "a",
-          "c",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -418,9 +356,9 @@ describe("str", () => {
 
   test("fails with empty input", () => {
     const parser = str("abc");
-    expect(parser([])).toMatchInlineSnapshot(`
+    expect(parser("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -429,16 +367,11 @@ describe("str", () => {
 
 describe("mapResult", () => {
   test("apply fn when parse succeeded", () => {
-    expect(mapResult(char("a"), (a) => a.repeat(10))([..."abcde"]))
+    expect(mapResult(char("a"), (a) => a.repeat(10))("abcde", 0))
       .toMatchInlineSnapshot(`
       {
         "data": "aaaaaaaaaa",
-        "rest": [
-          "b",
-          "c",
-          "d",
-          "e",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);

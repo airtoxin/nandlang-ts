@@ -13,31 +13,29 @@ import { char } from "../lib/parser-combinator";
 
 describe("whitespaces", () => {
   test("succeeds with spaces and tabs", () => {
-    expect(whitespaces()([..."  \t \t\t     s"])).toMatchInlineSnapshot(`
+    expect(whitespaces()("  \t \t\t     s", 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [
-          "s",
-        ],
+        "pos": 11,
         "success": true,
       }
     `);
   });
 
   test("succeeds with empty", () => {
-    expect(whitespaces()([...""])).toMatchInlineSnapshot(`
+    expect(whitespaces()("", 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [],
+        "pos": 0,
         "success": true,
       }
     `);
   });
 
   test("fails with empty with allowEmpty=false option", () => {
-    expect(whitespaces(false)([...""])).toMatchInlineSnapshot(`
+    expect(whitespaces(false)("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -46,37 +44,28 @@ describe("whitespaces", () => {
 
 describe("digit", () => {
   test("succeeds when input start with digit", () => {
-    expect(digit([..."3qn4"])).toMatchInlineSnapshot(`
+    expect(digit("3qn4", 0)).toMatchInlineSnapshot(`
       {
         "data": "3",
-        "rest": [
-          "q",
-          "n",
-          "4",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
   });
 
   test("fails when input start with non-digit characters", () => {
-    expect(digit([..."yuk1"])).toMatchInlineSnapshot(`
+    expect(digit("yuk1", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "y",
-          "u",
-          "k",
-          "1",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
   });
 
   test("fails when input is empty", () => {
-    expect(digit([])).toMatchInlineSnapshot(`
+    expect(digit("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -85,37 +74,28 @@ describe("digit", () => {
 
 describe("lowerAlphabet", () => {
   test("succeeds when input start with lowerAlphabet", () => {
-    expect(lowerAlphabet([..."start"])).toMatchInlineSnapshot(`
+    expect(lowerAlphabet("start", 0)).toMatchInlineSnapshot(`
       {
         "data": "s",
-        "rest": [
-          "t",
-          "a",
-          "r",
-          "t",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
   });
 
   test("fails when input start with non-lowerAlphabet characters", () => {
-    expect(lowerAlphabet([..."4yg"])).toMatchInlineSnapshot(`
+    expect(lowerAlphabet("4yg", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "4",
-          "y",
-          "g",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
   });
 
   test("fails when input is empty", () => {
-    expect(lowerAlphabet([])).toMatchInlineSnapshot(`
+    expect(lowerAlphabet("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -124,37 +104,28 @@ describe("lowerAlphabet", () => {
 
 describe("upperAlphabet", () => {
   test("succeeds when input start with upperAlphabet", () => {
-    expect(upperAlphabet([..."Start"])).toMatchInlineSnapshot(`
+    expect(upperAlphabet("Start", 0)).toMatchInlineSnapshot(`
       {
         "data": "S",
-        "rest": [
-          "t",
-          "a",
-          "r",
-          "t",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
   });
 
   test("fails when input start with non-upperAlphabet characters", () => {
-    expect(upperAlphabet([..."4yg"])).toMatchInlineSnapshot(`
+    expect(upperAlphabet("4yg", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "4",
-          "y",
-          "g",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
   });
 
   test("fails when input is empty", () => {
-    expect(upperAlphabet([])).toMatchInlineSnapshot(`
+    expect(upperAlphabet("", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -163,57 +134,29 @@ describe("upperAlphabet", () => {
 
 describe("symbol", () => {
   test("succeeds with alphabet word", () => {
-    expect(symbol([..."hE110 world"])).toMatchInlineSnapshot(`
+    expect(symbol("hE110 world", 0)).toMatchInlineSnapshot(`
       {
         "data": "hE110",
-        "rest": [
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
+        "pos": 5,
         "success": true,
       }
     `);
   });
 
   test("succeeds with underscore word", () => {
-    expect(symbol([..."__hE110 world"])).toMatchInlineSnapshot(`
+    expect(symbol("__hE110 world", 0)).toMatchInlineSnapshot(`
       {
         "data": "__hE110",
-        "rest": [
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
+        "pos": 7,
         "success": true,
       }
     `);
   });
 
   test("fails when input start with digit", () => {
-    expect(symbol([..."9_hE110 world"])).toMatchInlineSnapshot(`
+    expect(symbol("9_hE110 world", 0)).toMatchInlineSnapshot(`
       {
-        "rest": [
-          "9",
-          "_",
-          "h",
-          "E",
-          "1",
-          "1",
-          "0",
-          " ",
-          "w",
-          "o",
-          "r",
-          "l",
-          "d",
-        ],
+        "pos": 0,
         "success": false,
       }
     `);
@@ -222,21 +165,21 @@ describe("symbol", () => {
 
 describe("linebreak", () => {
   test("succeeds with linebreak", () => {
-    expect(linebreak([..."\na"])).toEqual({
+    expect(linebreak("\na", 0)).toEqual({
       data: null,
-      rest: ["a"],
+      pos: 1,
       success: true,
     });
-    expect(linebreak([..."\r\na"])).toEqual({
+    expect(linebreak("\r\na", 0)).toEqual({
       data: null,
-      rest: ["a"],
+      pos: 2,
       success: true,
     });
   });
 
   test("fails with carriage return only linebreak", () => {
-    expect(linebreak([..."\ra"])).toEqual({
-      rest: ["\r", "a"],
+    expect(linebreak("\ra", 0)).toEqual({
+      pos: 0,
       success: false,
     });
   });
@@ -244,10 +187,10 @@ describe("linebreak", () => {
 
 describe("emptyLine", () => {
   test("succeeds with empty line", () => {
-    expect(emptyLine([..."            \n"])).toMatchInlineSnapshot(`
+    expect(emptyLine("            \n", 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [],
+        "pos": 13,
         "success": true,
       }
     `);
@@ -258,14 +201,10 @@ describe("lazy", () => {
   test("succeeds with lazy initialized parser", () => {
     const parser = lazy<string>();
     parser.init(char("@"));
-    expect(parser([..."@abc"])).toMatchInlineSnapshot(`
+    expect(parser("@abc", 0)).toMatchInlineSnapshot(`
       {
         "data": "@",
-        "rest": [
-          "a",
-          "b",
-          "c",
-        ],
+        "pos": 1,
         "success": true,
       }
     `);
@@ -273,6 +212,6 @@ describe("lazy", () => {
 
   test("fails with not initialized", () => {
     const parser = lazy<string>();
-    expect(() => parser([..."@abc"])).toThrowError();
+    expect(() => parser("@abc", 0)).toThrowError();
   });
 });
