@@ -44,6 +44,7 @@ declare module "@nandlang-ts/language/parser/program" {
 }
 
 declare module "@nandlang-ts/language/code-fragments" {
+  export const ON: string;
   export const NOT: string;
   export const AND: string;
   export const AND3: string;
