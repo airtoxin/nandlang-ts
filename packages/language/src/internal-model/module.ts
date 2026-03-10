@@ -44,6 +44,30 @@ export class BitoutModule implements Module {
   }
 }
 
+export class ByteinModule implements Module {
+  public readonly name = "BYTEIN";
+
+  public createVariable(varName: string): Variable {
+    const outPorts = new Map<string, Reactive<boolean>>();
+    for (let i = 0; i < 8; i++) {
+      outPorts.set(`o${i}`, reactive(false));
+    }
+    return new Variable(varName, new Map(), outPorts);
+  }
+}
+
+export class ByteoutModule implements Module {
+  public readonly name = "BYTEOUT";
+
+  public createVariable(varName: string): Variable {
+    const inPorts = new Map<string, Reactive<boolean>>();
+    for (let i = 0; i < 8; i++) {
+      inPorts.set(`i${i}`, reactive(false));
+    }
+    return new Variable(varName, inPorts, new Map());
+  }
+}
+
 export class FlipflopModule implements Module {
   public readonly name = "FLIPFLOP";
 
@@ -84,6 +108,8 @@ export const createModule = (
       const variables: Variable[] = [];
       const bitIns = new Map<string, Reactive<boolean>>();
       const bitOuts = new Map<string, Reactive<boolean>>();
+      const byteIns = new Map<string, Reactive<boolean>[]>();
+      const byteOuts = new Map<string, Reactive<boolean>[]>();
       for (const statement of moduleStatement.definitionStatements) {
         if (statement.subtype.type === "varStatement") {
           const moduleName = statement.subtype.moduleName;
@@ -106,6 +132,22 @@ export const createModule = (
             const port = variable.inPorts.get("i0");
             invariant(port, "Can't find port i0 of BITIN");
             bitOuts.set(variable.name, port);
+          } else if (module instanceof ByteinModule) {
+            const ports: Reactive<boolean>[] = [];
+            for (let i = 0; i < 8; i++) {
+              const port = variable.outPorts.get(`o${i}`);
+              invariant(port, `Can't find port o${i} of BYTEIN`);
+              ports.push(port);
+            }
+            byteIns.set(variable.name, ports);
+          } else if (module instanceof ByteoutModule) {
+            const ports: Reactive<boolean>[] = [];
+            for (let i = 0; i < 8; i++) {
+              const port = variable.inPorts.get(`i${i}`);
+              invariant(port, `Can't find port i${i} of BYTEOUT`);
+              ports.push(port);
+            }
+            byteOuts.set(variable.name, ports);
           }
         } else if (statement.subtype.type === "wireStatement") {
           const {
@@ -170,7 +212,7 @@ export const createModule = (
         }
       }
 
-      return new Variable(varName, bitIns, bitOuts, variables);
+      return new Variable(varName, bitIns, bitOuts, variables, byteIns, byteOuts);
     }
   };
   Object.defineProperty(C, "name", { value: moduleStatement.name });

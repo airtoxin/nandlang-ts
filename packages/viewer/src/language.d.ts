@@ -1,7 +1,7 @@
 declare module "@nandlang-ts/language/vm" {
   export class Vm {
     compile(programString: string): void;
-    run(inputSignals: Map<string, boolean>): Map<string, boolean>;
+    run(inputSignals: Map<string, boolean | number>): Map<string, boolean | number>;
     getAllSignals(): Map<string, boolean>;
   }
 }
@@ -52,5 +52,9 @@ declare module "@nandlang-ts/language/code-fragments" {
   export const NOR: string;
   export const XOR: string;
   export const XNOR: string;
+  export const ADD: string;
+  export const DEC: string;
+  export const ENC: string;
+  export const BYTEADD: string;
   export const DECODER_3BIT: string;
 }

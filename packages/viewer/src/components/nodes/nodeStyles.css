@@ -56,6 +56,47 @@
   border-color: #22c55e;
 }
 
+.bytein-node {
+  border-color: #4a9eff;
+  min-height: 180px;
+}
+
+.byteout-node {
+  border-color: #ff6b6b;
+  min-height: 180px;
+}
+
+.byte-value-display {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  margin: 4px 0;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.byte-ports {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.byte-port-row {
+  font-size: 9px;
+  color: #aaa;
+}
+
+.byte-port-out {
+  text-align: right;
+}
+
+.byte-port-in {
+  text-align: left;
+}
+
 .port-label {
   font-size: 9px;
   color: #aaa;

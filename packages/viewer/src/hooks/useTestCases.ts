@@ -3,15 +3,15 @@ import { Vm } from "@nandlang-ts/language/vm";
 import type { PuzzleTestCase } from "../lib/puzzles";
 
 export type TestCase = {
-  inputs: Map<string, boolean>;
-  expectedOutputs: Map<string, boolean>;
-  actualOutputs: Map<string, boolean> | null;
+  inputs: Map<string, boolean | number>;
+  expectedOutputs: Map<string, boolean | number>;
+  actualOutputs: Map<string, boolean | number> | null;
   status: "idle" | "pass" | "fail";
 };
 
 type OnTestRun = (
-  inputs: Map<string, boolean>,
-  outputs: Map<string, boolean>,
+  inputs: Map<string, boolean | number>,
+  outputs: Map<string, boolean | number>,
   allSignals: Map<string, boolean>,
 ) => void;
 

@@ -7,5 +7,7 @@ export class Variable {
     public readonly inPorts: Map<string, Reactive<boolean>>,
     public readonly outPorts: Map<string, Reactive<boolean>>,
     public readonly children: Variable[] = [],
+    public readonly byteInPorts: Map<string, Reactive<boolean>[]> = new Map(),
+    public readonly byteOutPorts: Map<string, Reactive<boolean>[]> = new Map(),
   ) {}
 }

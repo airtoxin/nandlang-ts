@@ -8,6 +8,8 @@ const BUILTIN_PORTS: Record<string, PortInfo> = {
   NAND: { inputs: ["i0", "i1"], outputs: ["o0"] },
   BITIN: { inputs: [], outputs: ["o0"] },
   BITOUT: { inputs: ["i0"], outputs: [] },
+  BYTEIN: { inputs: [], outputs: ["o0", "o1", "o2", "o3", "o4", "o5", "o6", "o7"] },
+  BYTEOUT: { inputs: ["i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7"], outputs: [] },
   FLIPFLOP: { inputs: ["s", "r"], outputs: ["q"] },
 };
 
@@ -59,7 +61,7 @@ export type NodeData = {
   moduleName: string;
   inputs: string[];
   outputs: string[];
-  value?: boolean;
+  value?: boolean | number;
 };
 
 export function astToGraph(ast: Program): {
@@ -91,12 +93,14 @@ export function astToGraph(ast: Program): {
     const ports = resolveModulePorts(st.moduleName, moduleDefs);
     varPorts.set(st.variableName, ports);
 
-    if (st.moduleName === "BITIN") inputNames.push(st.variableName);
-    if (st.moduleName === "BITOUT") outputNames.push(st.variableName);
+    if (st.moduleName === "BITIN" || st.moduleName === "BYTEIN") inputNames.push(st.variableName);
+    if (st.moduleName === "BITOUT" || st.moduleName === "BYTEOUT") outputNames.push(st.variableName);
 
     let nodeType: string;
     if (st.moduleName === "BITIN") nodeType = "bitinNode";
     else if (st.moduleName === "BITOUT") nodeType = "bitoutNode";
+    else if (st.moduleName === "BYTEIN") nodeType = "byteinNode";
+    else if (st.moduleName === "BYTEOUT") nodeType = "byteoutNode";
     else if (st.moduleName === "NAND") nodeType = "nandNode";
     else if (st.moduleName === "FLIPFLOP") nodeType = "flipflopNode";
     else nodeType = "moduleNode";
@@ -147,7 +151,8 @@ export function astToGraph(ast: Program): {
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of nodes) {
-    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    const isByte = node.type === "byteinNode" || node.type === "byteoutNode";
+    g.setNode(node.id, { width: NODE_WIDTH, height: isByte ? 200 : NODE_HEIGHT });
   }
   for (const edge of edges) {
     g.setEdge(edge.source, edge.target);

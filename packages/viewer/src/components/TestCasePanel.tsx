@@ -22,9 +22,16 @@ function BitValue({
   value,
   className,
 }: {
-  value: boolean;
+  value: boolean | number;
   className?: string;
 }) {
+  if (typeof value === "number") {
+    return (
+      <span className={`bit-value byte-value ${className ?? ""}`}>
+        {value}
+      </span>
+    );
+  }
   return (
     <span
       className={`bit-value ${value ? "bit-on" : "bit-off"} ${className ?? ""}`}
@@ -38,9 +45,16 @@ function BitDisplay({
   value,
   match,
 }: {
-  value: boolean;
+  value: boolean | number;
   match: boolean;
 }) {
+  if (typeof value === "number") {
+    return (
+      <span className={`bit-display ${match ? "" : "bit-mismatch"}`}>
+        {value}
+      </span>
+    );
+  }
   return (
     <span className={`bit-display ${match ? "" : "bit-mismatch"}`}>
       {value ? "1" : "0"}
@@ -108,7 +122,7 @@ export function TestCasePanel({
                   <th className="row-header input-header">{name}</th>
                   {testCases.map((tc, i) => (
                     <td key={i} className={`test-col-${tc.status}`}>
-                      <BitValue value={tc.inputs.get(name) ?? false} />
+                      <BitValue value={tc.inputs.get(name) ?? 0} />
                     </td>
                   ))}
                 </tr>
@@ -122,7 +136,7 @@ export function TestCasePanel({
                   {testCases.map((tc, i) => (
                     <td key={i} className={`test-col-${tc.status}`}>
                       <BitValue
-                        value={tc.expectedOutputs.get(name) ?? false}
+                        value={tc.expectedOutputs.get(name) ?? 0}
                         className="expected-bit"
                       />
                     </td>
@@ -139,7 +153,7 @@ export function TestCasePanel({
                     <td key={i} className={`test-col-${tc.status}`}>
                       {tc.actualOutputs ? (
                         <BitDisplay
-                          value={tc.actualOutputs.get(name) ?? false}
+                          value={tc.actualOutputs.get(name) ?? 0}
                           match={
                             tc.actualOutputs.get(name) ===
                             tc.expectedOutputs.get(name)
