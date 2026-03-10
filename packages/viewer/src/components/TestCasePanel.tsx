@@ -1,15 +1,46 @@
 import type { TestCase } from "../hooks/useTestCases";
 
+const IconStep = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <polygon points="3,1 13,8 3,15" />
+  </svg>
+);
+
+const IconRunAll = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <polygon points="1,1 9,8 1,15" />
+    <polygon points="8,1 16,8 8,15" />
+  </svg>
+);
+
+const IconPause = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <rect x="2" y="1" width="4" height="14" />
+    <rect x="10" y="1" width="4" height="14" />
+  </svg>
+);
+
+const IconStop = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <rect x="2" y="2" width="12" height="12" />
+  </svg>
+);
+
 type Props = {
   testCases: TestCase[];
   inputNames: string[];
   outputNames: string[];
   onRunAll: () => void;
   onRunNext: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onStop: () => void;
   allPassed: boolean;
   onNextLevel: () => void;
   isLastLevel: boolean;
   disabled?: boolean;
+  isRunning?: boolean;
+  isPaused?: boolean;
 };
 
 function StatusBadge({ status }: { status: TestCase["status"] }) {
@@ -68,12 +99,20 @@ export function TestCasePanel({
   outputNames,
   onRunAll,
   onRunNext,
+  onPause,
+  onResume,
+  onStop,
   allPassed,
   onNextLevel,
   isLastLevel,
   disabled = false,
+  isRunning = false,
+  isPaused = false,
 }: Props) {
   if (inputNames.length === 0 && outputNames.length === 0) return null;
+
+  const hasStarted = testCases.some((tc) => tc.status !== "idle");
+  const noTestCases = testCases.length === 0;
 
   return (
     <div className="test-case-panel">
@@ -83,16 +122,45 @@ export function TestCasePanel({
           <button
             className="action-btn step-btn"
             onClick={onRunNext}
-            disabled={disabled || testCases.length === 0}
+            disabled={disabled || isRunning || noTestCases}
+            title="Step"
           >
-            Step
+            <IconStep />
           </button>
+          {isRunning ? (
+            <button
+              className="action-btn pause-btn"
+              onClick={onPause}
+              title="Pause"
+            >
+              <IconPause />
+            </button>
+          ) : isPaused ? (
+            <button
+              className="action-btn run-btn"
+              onClick={onResume}
+              disabled={disabled || noTestCases}
+              title="Resume"
+            >
+              <IconRunAll />
+            </button>
+          ) : (
+            <button
+              className="action-btn run-btn"
+              onClick={onRunAll}
+              disabled={disabled || noTestCases}
+              title="Run All"
+            >
+              <IconRunAll />
+            </button>
+          )}
           <button
-            className="action-btn run-btn"
-            onClick={onRunAll}
-            disabled={disabled || testCases.length === 0}
+            className="action-btn stop-btn"
+            onClick={onStop}
+            disabled={disabled || (!isRunning && !isPaused && !hasStarted) || noTestCases}
+            title="Stop"
           >
-            Run All
+            <IconStop />
           </button>
           {allPassed && !isLastLevel && (
             <button className="next-level-btn" onClick={onNextLevel}>
@@ -127,41 +195,29 @@ export function TestCasePanel({
                   ))}
                 </tr>
               ))}
-              {/* Expected output rows */}
+              {/* Output rows (expected → actual) */}
               {outputNames.map((name) => (
-                <tr key={`exp-${name}`}>
-                  <th className="row-header expected-header">
-                    {name}<br /><small>(expected)</small>
-                  </th>
+                <tr key={`out-${name}`}>
+                  <th className="row-header output-header">{name}</th>
                   {testCases.map((tc, i) => (
                     <td key={i} className={`test-col-${tc.status}`}>
-                      <BitValue
-                        value={tc.expectedOutputs.get(name) ?? 0}
-                        className="expected-bit"
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {/* Actual output rows */}
-              {outputNames.map((name) => (
-                <tr key={`act-${name}`}>
-                  <th className="row-header actual-header">
-                    {name}<br /><small>(actual)</small>
-                  </th>
-                  {testCases.map((tc, i) => (
-                    <td key={i} className={`test-col-${tc.status}`}>
-                      {tc.actualOutputs ? (
-                        <BitDisplay
-                          value={tc.actualOutputs.get(name) ?? 0}
-                          match={
-                            tc.actualOutputs.get(name) ===
-                            tc.expectedOutputs.get(name)
-                          }
+                      <div className="output-cell">
+                        <BitValue
+                          value={tc.expectedOutputs.get(name) ?? 0}
+                          className="expected-bit"
                         />
-                      ) : (
-                        <span className="bit-display bit-empty">-</span>
-                      )}
+                        {tc.actualOutputs ? (
+                          <BitDisplay
+                            value={tc.actualOutputs.get(name) ?? 0}
+                            match={
+                              tc.actualOutputs.get(name) ===
+                              tc.expectedOutputs.get(name)
+                            }
+                          />
+                        ) : (
+                          <span className="bit-display bit-empty">-</span>
+                        )}
+                      </div>
                     </td>
                   ))}
                 </tr>

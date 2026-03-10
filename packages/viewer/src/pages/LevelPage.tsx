@@ -98,10 +98,15 @@ export function LevelPage() {
         outputNames={currentPuzzle.outputNames}
         onRunAll={tc.runAll}
         onRunNext={tc.runNext}
+        onPause={tc.pause}
+        onResume={tc.resume}
+        onStop={tc.stop}
         allPassed={tc.allPassed}
         onNextLevel={handleNextLevel}
         isLastLevel={levelIndex >= puzzles.length - 1}
         disabled={dirty}
+        isRunning={tc.isRunning}
+        isPaused={tc.isPaused}
       />
     </div>
   );
