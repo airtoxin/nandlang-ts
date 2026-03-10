@@ -6,6 +6,7 @@ import {
   BYTEADD,
   DEC,
   DECODER_3BIT,
+  DLATCH,
   ENC,
   NOR,
   NOT,
@@ -854,6 +855,33 @@ test("BYTEADD", () => {
   expect([...vm.run(new Map([["a", 127], ["b", 128]])).entries()]).toEqual([["out", 255]]);
   // Overflow: 200 + 100 = 300 → 300 - 256 = 44
   expect([...vm.run(new Map([["a", 200], ["b", 100]])).entries()]).toEqual([["out", 44]]);
+});
+
+test("DLATCH", () => {
+  const vm = new Vm();
+  vm.compile(`
+    ${DLATCH}
+    VAR d BITIN
+    VAR e BITIN
+    VAR q BITOUT
+
+    VAR dl DLATCH
+    WIRE d _ TO dl d
+    WIRE e _ TO dl e
+    WIRE dl _ TO q _
+  `);
+  // Initial: hold → q=0
+  expect([...vm.run(new Map([["d", false], ["e", false]])).entries()]).toEqual([["q", false]]);
+  // Write 1
+  expect([...vm.run(new Map([["d", true], ["e", true]])).entries()]).toEqual([["q", true]]);
+  // Hold → q still 1
+  expect([...vm.run(new Map([["d", false], ["e", false]])).entries()]).toEqual([["q", true]]);
+  // Write 0
+  expect([...vm.run(new Map([["d", false], ["e", true]])).entries()]).toEqual([["q", false]]);
+  // Input changes but enable off → q still 0
+  expect([...vm.run(new Map([["d", true], ["e", false]])).entries()]).toEqual([["q", false]]);
+  // Write 1 again
+  expect([...vm.run(new Map([["d", true], ["e", true]])).entries()]).toEqual([["q", true]]);
 });
 
 test("DECODER_3BIT", () => {

@@ -10,6 +10,7 @@ import {
   ADD,
   DEC,
   ENC,
+  DLATCH,
 } from "@nandlang-ts/language/code-fragments";
 
 export type PuzzleTestCase = {
@@ -600,5 +601,140 @@ WIRE add7 o0 TO out i7
 `,
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC"],
     helpSections: ["circuit-full-adder", "mod-bytein", "mod-byteout"],
+  },
+  {
+    id: 17,
+    title: "Lv17: SR Latch",
+    description:
+      "ここからは「記憶」を持つ回路に挑戦します！\n\n" +
+      "これまでの回路はすべて組み合わせ回路（入力が決まれば出力が決まる）でしたが、" +
+      "FLIPFLOPは状態を記憶できる特別なモジュールです。\n\n" +
+      "FLIPFLOPには2つの入力と1つの出力があります:\n" +
+      "  s（Set）= 1にすると出力qが1になる\n" +
+      "  r（Reset）= 1にすると出力qが0になる\n" +
+      "  両方0なら、前の状態を保持する\n\n" +
+      "入力s, rをFLIPFLOPに接続し、出力qを取り出してください。\n" +
+      "テストは順番に実行され、前のテストの状態が次に引き継がれます。",
+    inputNames: ["s", "r"],
+    outputNames: ["q"],
+    testCases: [
+      tc({ s: false, r: false }, { q: false }),
+      tc({ s: true, r: false }, { q: true }),
+      tc({ s: false, r: false }, { q: true }),
+      tc({ s: false, r: true }, { q: false }),
+      tc({ s: false, r: false }, { q: false }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
+    fixedCode: `VAR s BITIN\nVAR r BITIN\nVAR q BITOUT`,
+    editableCode: `VAR ff FLIPFLOP
+WIRE s _ TO ff s
+WIRE r _ TO ff r
+WIRE ff _ TO q _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP"],
+    helpSections: ["mod-flipflop", "circuit-sr-latch"],
+  },
+  {
+    id: 18,
+    title: "Lv18: D Latch",
+    description:
+      "SR Latchでは「セット」と「リセット」を別々に制御しましたが、" +
+      "実際のメモリでは「この値を覚えて」という操作の方が自然です。\n\n" +
+      "D Latch（データラッチ）は1ビットのメモリです:\n" +
+      "  d（Data）= 記憶したい値（0または1）\n" +
+      "  e（Enable）= 1のとき書き込み、0のとき保持\n" +
+      "  q = 記憶されている値\n\n" +
+      "e=1のとき: d=1ならq=1、d=0ならq=0（dの値がそのまま記憶される）\n" +
+      "e=0のとき: dが変わってもqは前の値を保持する\n\n" +
+      "ヒント: FLIPFLOPのs,rをd,eから作るには？\n" +
+      "  s = d AND e（dが1かつeが1のときセット）\n" +
+      "  r = (NOT d) AND e（dが0かつeが1のときリセット）",
+    inputNames: ["d", "e"],
+    outputNames: ["q"],
+    testCases: [
+      tc({ d: false, e: false }, { q: false }),
+      tc({ d: true, e: true }, { q: true }),
+      tc({ d: false, e: false }, { q: true }),
+      tc({ d: false, e: true }, { q: false }),
+      tc({ d: true, e: false }, { q: false }),
+      tc({ d: true, e: true }, { q: true }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
+    fixedCode: `VAR d BITIN\nVAR e BITIN\nVAR q BITOUT`,
+    editableCode: `VAR not NOT
+VAR and_s AND
+VAR and_r AND
+VAR ff FLIPFLOP
+WIRE d _ TO not _
+WIRE d _ TO and_s i0
+WIRE e _ TO and_s i1
+WIRE not _ TO and_r i0
+WIRE e _ TO and_r i1
+WIRE and_s _ TO ff s
+WIRE and_r _ TO ff r
+WIRE ff _ TO q _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP"],
+    helpSections: ["mod-flipflop", "circuit-sr-latch", "circuit-d-latch"],
+  },
+  {
+    id: 19,
+    title: "Lv19: Byte Memory",
+    description:
+      "D Latchで1ビットの記憶ができました。これを8個並べれば、1バイト（0〜255）を記憶できます！\n\n" +
+      "入力:\n" +
+      "  d（BYTEIN）= 記憶したい8ビットの値\n" +
+      "  w（BITIN）= 1のとき書き込み、0のとき保持\n\n" +
+      "出力:\n" +
+      "  q（BYTEOUT）= 記憶されている8ビットの値\n\n" +
+      "D Latch（DLATCH）を8個使い、各ビットごとに同じ書き込み信号wを共有します。\n" +
+      "DLATCHのポート: d（データ入力）、e（イネーブル）、q（出力）",
+    inputNames: ["d", "w"],
+    outputNames: ["q"],
+    testCases: [
+      tc({ d: 0, w: false }, { q: 0 }),
+      tc({ d: 42, w: true }, { q: 42 }),
+      tc({ d: 0, w: false }, { q: 42 }),
+      tc({ d: 255, w: true }, { q: 255 }),
+      tc({ d: 100, w: false }, { q: 255 }),
+      tc({ d: 0, w: true }, { q: 0 }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}${DLATCH}`,
+    fixedCode: `VAR d BYTEIN\nVAR w BITIN\nVAR q BYTEOUT`,
+    editableCode: `VAR dl0 DLATCH
+WIRE d o0 TO dl0 d
+WIRE w _ TO dl0 e
+WIRE dl0 _ TO q i0
+VAR dl1 DLATCH
+WIRE d o1 TO dl1 d
+WIRE w _ TO dl1 e
+WIRE dl1 _ TO q i1
+VAR dl2 DLATCH
+WIRE d o2 TO dl2 d
+WIRE w _ TO dl2 e
+WIRE dl2 _ TO q i2
+VAR dl3 DLATCH
+WIRE d o3 TO dl3 d
+WIRE w _ TO dl3 e
+WIRE dl3 _ TO q i3
+VAR dl4 DLATCH
+WIRE d o4 TO dl4 d
+WIRE w _ TO dl4 e
+WIRE dl4 _ TO q i4
+VAR dl5 DLATCH
+WIRE d o5 TO dl5 d
+WIRE w _ TO dl5 e
+WIRE dl5 _ TO q i5
+VAR dl6 DLATCH
+WIRE d o6 TO dl6 d
+WIRE w _ TO dl6 e
+WIRE dl6 _ TO q i6
+VAR dl7 DLATCH
+WIRE d o7 TO dl7 d
+WIRE w _ TO dl7 e
+WIRE dl7 _ TO q i7
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH"],
+    helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-byte-memory", "mod-bytein", "mod-byteout"],
   },
 ];

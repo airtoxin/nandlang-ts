@@ -345,6 +345,28 @@ MOD START BYTEADD
 MOD END
 `;
 
+export const DLATCH = `\
+MOD START DLATCH
+  ${NOT}
+  ${AND}
+  VAR d BITIN
+  VAR e BITIN
+  VAR not NOT
+  WIRE d _ TO not _
+  VAR and_s AND
+  WIRE d _ TO and_s i0
+  WIRE e _ TO and_s i1
+  VAR and_r AND
+  WIRE not _ TO and_r i0
+  WIRE e _ TO and_r i1
+  VAR ff FLIPFLOP
+  WIRE and_s _ TO ff s
+  WIRE and_r _ TO ff r
+  VAR q BITOUT
+  WIRE ff _ TO q _
+MOD END
+`;
+
 export const DECODER_3BIT = `\
 MOD START DECODER_3BIT
   ${NOT}
