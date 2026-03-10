@@ -54,9 +54,9 @@ export const lazy = <T>(): Parser<T> & {
   init: (parser: Parser<T>) => void;
 } => {
   let parser: Parser<T> | null = null;
-  function internal(inputs: string[]) {
+  function internal(input: string, pos: number) {
     if (parser == null) throw new Error(`later parser not initialized`);
-    return parser(inputs);
+    return parser(input, pos);
   }
   internal.init = (p: Parser<T>) => {
     parser = p;

@@ -36,11 +36,11 @@ declare module "@nandlang-ts/language/parser/ast" {
 declare module "@nandlang-ts/language/parser/program" {
   import type { Program } from "@nandlang-ts/language/parser/ast";
 
-  type ParseResult<T> =
-    | { success: true; data: T; rest: string[] }
-    | { success: false; rest: string[] };
+  type ProgramParseResult =
+    | { success: true; data: Program; rest: string }
+    | { success: false; rest: string };
 
-  export const program: (inputs: string[]) => ParseResult<Program>;
+  export const program: (input: string | string[]) => ProgramParseResult;
 }
 
 declare module "@nandlang-ts/language/code-fragments" {

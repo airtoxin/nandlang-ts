@@ -9,198 +9,96 @@ import {
 
 describe("commentStatement", () => {
   test("succeeds with comment line", () => {
-    expect(commentStatement([...`# this is comment\nfoo`]))
-      .toMatchInlineSnapshot(`
+    const input = `# this is comment\nfoo`;
+    expect(commentStatement(input, 0)).toMatchInlineSnapshot(`
       {
         "data": null,
-        "rest": [
-          "f",
-          "o",
-          "o",
-        ],
+        "pos": 18,
         "success": true,
       }
     `);
   });
 
   test("fails with inline comment", () => {
-    expect(commentStatement([...`VAR in BITIN # this is comment\nfoo`]))
-      .toMatchInlineSnapshot(`
-        {
-          "rest": [
-            "V",
-            "A",
-            "R",
-            " ",
-            "i",
-            "n",
-            " ",
-            "B",
-            "I",
-            "T",
-            "I",
-            "N",
-            " ",
-            "#",
-            " ",
-            "t",
-            "h",
-            "i",
-            "s",
-            " ",
-            "i",
-            "s",
-            " ",
-            "c",
-            "o",
-            "m",
-            "m",
-            "e",
-            "n",
-            "t",
-            "
-        ",
-            "f",
-            "o",
-            "o",
-          ],
-          "success": false,
-        }
-      `);
+    const input = `VAR in BITIN # this is comment\nfoo`;
+    expect(commentStatement(input, 0)).toMatchInlineSnapshot(`
+      {
+        "pos": 0,
+        "success": false,
+      }
+    `);
   });
 });
 
 describe("variableStatement", () => {
   test("succeeds with variable statement", () => {
-    expect(variableStatement([..."   VAR nand  NAND  \nfoo"]))
-      .toMatchInlineSnapshot(`
-        {
-          "data": {
-            "subtype": {
-              "moduleName": "NAND",
-              "type": "varStatement",
-              "variableName": "nand",
-            },
-            "type": "statement",
+    const input = "   VAR nand  NAND  \nfoo";
+    expect(variableStatement(input, 0)).toMatchInlineSnapshot(`
+      {
+        "data": {
+          "subtype": {
+            "moduleName": "NAND",
+            "type": "varStatement",
+            "variableName": "nand",
           },
-          "rest": [
-            "f",
-            "o",
-            "o",
-          ],
-          "success": true,
-        }
-      `);
+          "type": "statement",
+        },
+        "pos": 20,
+        "success": true,
+      }
+    `);
   });
 
   test("fails", () => {
-    expect(variableStatement([..."   var nand  NAND  \nfoo"]))
-      .toMatchInlineSnapshot(`
-        {
-          "rest": [
-            "v",
-            "a",
-            "r",
-            " ",
-            "n",
-            "a",
-            "n",
-            "d",
-            " ",
-            " ",
-            "N",
-            "A",
-            "N",
-            "D",
-            " ",
-            " ",
-            "
-        ",
-            "f",
-            "o",
-            "o",
-          ],
-          "success": false,
-        }
-      `);
+    const input = "   var nand  NAND  \nfoo";
+    expect(variableStatement(input, 0)).toMatchInlineSnapshot(`
+      {
+        "pos": 3,
+        "success": false,
+      }
+    `);
   });
 });
 
 describe("wireStatement", () => {
   test("succeeds with wire statement", () => {
-    expect(wireStatement([..."   WIRE nand  _ TO out _in\nfoo"]))
-      .toMatchInlineSnapshot(`
-        {
-          "data": {
-            "subtype": {
-              "destPortName": "_in",
-              "destVariableName": "out",
-              "srcPortName": "_",
-              "srcVariableName": "nand",
-              "type": "wireStatement",
-            },
-            "type": "statement",
+    const input = "   WIRE nand  _ TO out _in\nfoo";
+    expect(wireStatement(input, 0)).toMatchInlineSnapshot(`
+      {
+        "data": {
+          "subtype": {
+            "destPortName": "_in",
+            "destVariableName": "out",
+            "srcPortName": "_",
+            "srcVariableName": "nand",
+            "type": "wireStatement",
           },
-          "rest": [
-            "f",
-            "o",
-            "o",
-          ],
-          "success": true,
-        }
-      `);
+          "type": "statement",
+        },
+        "pos": 27,
+        "success": true,
+      }
+    `);
   });
 
   test("fails", () => {
-    expect(wireStatement([..."   wire nand  _ TO out _in\nfoo"]))
-      .toMatchInlineSnapshot(`
-        {
-          "rest": [
-            "w",
-            "i",
-            "r",
-            "e",
-            " ",
-            "n",
-            "a",
-            "n",
-            "d",
-            " ",
-            " ",
-            "_",
-            " ",
-            "T",
-            "O",
-            " ",
-            "o",
-            "u",
-            "t",
-            " ",
-            "_",
-            "i",
-            "n",
-            "
-        ",
-            "f",
-            "o",
-            "o",
-          ],
-          "success": false,
-        }
-      `);
+    const input = "   wire nand  _ TO out _in\nfoo";
+    expect(wireStatement(input, 0)).toMatchInlineSnapshot(`
+      {
+        "pos": 3,
+        "success": false,
+      }
+    `);
   });
 });
 
 describe("statements", () => {
   test("succeeds with statements", () => {
-    expect(
-      statements([
-        ...`VAR nand  NAND   
-         
+    const input = `VAR nand  NAND
+
             WIRE nand  _ TO out _in
-            rest`,
-      ]),
-    ).toMatchInlineSnapshot(`
+            rest`;
+    expect(statements(input, 0)).toMatchInlineSnapshot(`
       {
         "data": [
           {
@@ -222,24 +120,7 @@ describe("statements", () => {
             "type": "statement",
           },
         ],
-        "rest": [
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          "r",
-          "e",
-          "s",
-          "t",
-        ],
+        "pos": 52,
         "success": true,
       }
     `);
@@ -255,7 +136,7 @@ describe("moduleStatement", () => {
       MOD END
       rest
     `;
-    expect(moduleStatement([...moduleDef])).toMatchInlineSnapshot(`
+    expect(moduleStatement(moduleDef, 0)).toMatchInlineSnapshot(`
       {
         "data": {
           "subtype": {
@@ -282,24 +163,7 @@ describe("moduleStatement", () => {
           },
           "type": "statement",
         },
-        "rest": [
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          "r",
-          "e",
-          "s",
-          "t",
-          "
-      ",
-          " ",
-          " ",
-          " ",
-          " ",
-        ],
+        "pos": 79,
         "success": true,
       }
     `);
@@ -316,7 +180,7 @@ describe("moduleStatement", () => {
       MOD END
       rest
     `;
-    expect(moduleStatement([...moduleDef])).toMatchInlineSnapshot(`
+    expect(moduleStatement(moduleDef, 0)).toMatchInlineSnapshot(`
       {
         "data": {
           "subtype": {
@@ -360,24 +224,7 @@ describe("moduleStatement", () => {
           },
           "type": "statement",
         },
-        "rest": [
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          " ",
-          "r",
-          "e",
-          "s",
-          "t",
-          "
-      ",
-          " ",
-          " ",
-          " ",
-          " ",
-        ],
+        "pos": 147,
         "success": true,
       }
     `);

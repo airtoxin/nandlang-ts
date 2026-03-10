@@ -21,10 +21,10 @@ export function useCircuit() {
   const compile = useCallback((code: string) => {
     setError(null);
     try {
-      const parseResult = parseProgram([...code]);
+      const parseResult = parseProgram(code);
       if (!parseResult.success) {
         setError(
-          `Parse error near: ...${parseResult.rest.slice(0, 30).join("")}...`,
+          `Parse error near: ...${parseResult.rest.slice(0, 30)}...`,
         );
         return;
       }
