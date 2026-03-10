@@ -556,6 +556,129 @@ VAR x NOT`}</pre>
       </>
     ),
   },
+  {
+    id: "mod-flipflop",
+    title: "FLIPFLOP: 記憶素子",
+    content: (
+      <>
+        <p>
+          状態を記憶できる唯一のプリミティブモジュールです。
+          Set信号で1を記憶し、Reset信号で0を記憶します。
+          どちらも0なら前の状態を保持します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>s</code></td><td>入力</td><td>Set（1を記憶）</td></tr>
+            <tr><td><code>r</code></td><td>入力</td><td>Reset（0を記憶）</td></tr>
+            <tr><td><code>q</code> / <code>_</code></td><td>出力</td><td>記憶されている値</td></tr>
+          </tbody>
+        </table>
+        <p>動作表（テストは順番に実行され、状態が引き継がれます）:</p>
+        <table>
+          <thead>
+            <tr><th>s</th><th>r</th><th>q</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>保持</td></tr>
+            <tr><td>0</td><td>1</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>1</td><td>エラー</td></tr>
+          </tbody>
+        </table>
+        <p>出力ポートは1つなので、WIRE文では <code>_</code> で指定できます。</p>
+      </>
+    ),
+  },
+  {
+    id: "circuit-sr-latch",
+    title: "SR Latch: セット・リセットラッチ",
+    content: (
+      <>
+        <p>
+          FLIPFLOPを使った最も基本的な記憶回路です。
+          Set(s)で1をセットし、Reset(r)で0にリセットします。
+          両方0のときは前の値を保持します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>s</code></td><td>入力</td><td>Set（1にする）</td></tr>
+            <tr><td><code>r</code></td><td>入力</td><td>Reset（0にする）</td></tr>
+            <tr><td><code>q</code></td><td>出力</td><td>記憶値</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>FLIPFLOPを1つ配置して、s, rの入力とqの出力をそのまま結線するだけです。</p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-d-latch",
+    title: "D Latch: データラッチ（DLATCH）",
+    content: (
+      <>
+        <p>
+          1ビットのメモリです。Enable(e)が1のときにData(d)の値を記憶し、
+          e=0のときは前の値を保持します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>d</code></td><td>入力</td><td>記憶したい値</td></tr>
+            <tr><td><code>e</code></td><td>入力</td><td>Enable（書き込み許可）</td></tr>
+            <tr><td><code>q</code> / <code>_</code></td><td>出力</td><td>記憶されている値</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            FLIPFLOPのs,rをd,eから生成します:
+            s = d AND e（dが1かつeが1でセット）、
+            r = (NOT d) AND e（dが0かつeが1でリセット）。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-byte-memory",
+    title: "Byte Memory: バイトメモリ",
+    content: (
+      <>
+        <p>
+          DLATCHを8個並列に並べて、8ビット（1バイト）の値を記憶する回路です。
+          書き込み信号wは全ビットで共有します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>d</code> (BYTEIN)</td><td>入力</td><td>記憶したい8ビット値</td></tr>
+            <tr><td><code>w</code> (BITIN)</td><td>入力</td><td>書き込み信号</td></tr>
+            <tr><td><code>q</code> (BYTEOUT)</td><td>出力</td><td>記憶されている8ビット値</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            DLATCHを8個作り、各ビットの入力(d o0〜o7)をDLATCHのdに、
+            wをすべてのDLATCHのeに接続します。
+            各DLATCHの出力qをBYTEOUTの対応するビット(q i0〜i7)に繋ぎます。
+          </p>
+        </details>
+      </>
+    ),
+  },
 ];
 
 export function HelpManual({ onClose, highlightSections }: Props) {
