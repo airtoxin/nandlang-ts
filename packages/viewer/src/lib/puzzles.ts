@@ -537,13 +537,15 @@ WIRE or22 _ TO o2 _
     title: "Lv16: Byte Add",
     description:
       "いよいよ整数の足し算です！\n\n" +
-      "BYTEINは0〜255の整数を受け取り、8本のビット線（o0〜o7）に分解して出力します。" +
-      "BYTEOUTはその逆で、8本のビット線（i0〜i7）から整数を組み立てます。\n\n" +
+      "BYTEINは0〜255の整数をバイト信号として受け取ります。" +
+      "BYTEOUTはその逆で、バイト信号から整数を出力します。\n\n" +
+      "BYTESPLITはバイト信号を8本のビット線（o0〜o7）に分解します。" +
+      "BYTEMERGEはその逆で、8本のビット線（i0〜i7）をバイト信号にまとめます。\n\n" +
       "Full Adder（ADD）を8個連結して「リップルキャリー加算器」を構築しましょう。" +
       "各ADDは対応するビット同士を足し、繰り上がり（carry）を次のビットのADDに渡します。\n\n" +
-      "  add0: a.o0 + b.o0         → out.i0（1の位）\n" +
-      "  add1: a.o1 + b.o1 + carry → out.i1（2の位）\n" +
-      "  add2: a.o2 + b.o2 + carry → out.i2（4の位）\n" +
+      "  add0: sa.o0 + sb.o0         → m.i0（1の位）\n" +
+      "  add1: sa.o1 + sb.o1 + carry → m.i1（2の位）\n" +
+      "  add2: sa.o2 + sb.o2 + carry → m.i2（4の位）\n" +
       "  ...以下同様\n\n" +
       "結果が255を超える場合はオーバーフローし、下位8ビットのみが出力されます。",
     inputNames: ["a", "b"],
@@ -594,48 +596,48 @@ WIRE or22 _ TO o2 _
       tc({ a: 85, b: 170 }, { out: 255 }),  // 交換法則
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
-    fixedCode: `VAR a BYTEIN\nVAR b BYTEIN\nVAR out BYTEOUT`,
+    fixedCode: `VAR a BYTEIN\nVAR b BYTEIN\nVAR out BYTEOUT\nVAR sa BYTESPLIT\nWIRE a _ TO sa _\nVAR sb BYTESPLIT\nWIRE b _ TO sb _\nVAR m BYTEMERGE\nWIRE m _ TO out _`,
     editableCode: `VAR add0 ADD
-WIRE a o0 TO add0 i0
-WIRE b o0 TO add0 i1
-WIRE add0 o0 TO out i0
+WIRE sa o0 TO add0 i0
+WIRE sb o0 TO add0 i1
+WIRE add0 o0 TO m i0
 VAR add1 ADD
-WIRE a o1 TO add1 i0
-WIRE b o1 TO add1 i1
+WIRE sa o1 TO add1 i0
+WIRE sb o1 TO add1 i1
 WIRE add0 o1 TO add1 i2
-WIRE add1 o0 TO out i1
+WIRE add1 o0 TO m i1
 VAR add2 ADD
-WIRE a o2 TO add2 i0
-WIRE b o2 TO add2 i1
+WIRE sa o2 TO add2 i0
+WIRE sb o2 TO add2 i1
 WIRE add1 o1 TO add2 i2
-WIRE add2 o0 TO out i2
+WIRE add2 o0 TO m i2
 VAR add3 ADD
-WIRE a o3 TO add3 i0
-WIRE b o3 TO add3 i1
+WIRE sa o3 TO add3 i0
+WIRE sb o3 TO add3 i1
 WIRE add2 o1 TO add3 i2
-WIRE add3 o0 TO out i3
+WIRE add3 o0 TO m i3
 VAR add4 ADD
-WIRE a o4 TO add4 i0
-WIRE b o4 TO add4 i1
+WIRE sa o4 TO add4 i0
+WIRE sb o4 TO add4 i1
 WIRE add3 o1 TO add4 i2
-WIRE add4 o0 TO out i4
+WIRE add4 o0 TO m i4
 VAR add5 ADD
-WIRE a o5 TO add5 i0
-WIRE b o5 TO add5 i1
+WIRE sa o5 TO add5 i0
+WIRE sb o5 TO add5 i1
 WIRE add4 o1 TO add5 i2
-WIRE add5 o0 TO out i5
+WIRE add5 o0 TO m i5
 VAR add6 ADD
-WIRE a o6 TO add6 i0
-WIRE b o6 TO add6 i1
+WIRE sa o6 TO add6 i0
+WIRE sb o6 TO add6 i1
 WIRE add5 o1 TO add6 i2
-WIRE add6 o0 TO out i6
+WIRE add6 o0 TO m i6
 VAR add7 ADD
-WIRE a o7 TO add7 i0
-WIRE b o7 TO add7 i1
+WIRE sa o7 TO add7 i0
+WIRE sb o7 TO add7 i1
 WIRE add6 o1 TO add7 i2
-WIRE add7 o0 TO out i7
+WIRE add7 o0 TO m i7
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["circuit-full-adder", "mod-bytein", "mod-byteout"],
   },
   {
@@ -783,7 +785,8 @@ WIRE ff _ TO q _
       "  w（BITIN）= 1のとき書き込み、0のとき保持\n\n" +
       "出力:\n" +
       "  q（BYTEOUT）= 記憶されている8ビットの値\n\n" +
-      "D Latch（DLATCH）を8個使い、各ビットごとに同じ書き込み信号wを共有します。\n" +
+      "BYTESPLITでバイト信号を8本のビット線に分解し、D Latch（DLATCH）を8個使って各ビットを記憶し、" +
+      "BYTEMERGEで8本のビット線をバイト信号に戻します。\n" +
       "DLATCHのポート: d（データ入力）、e（イネーブル）、q（出力）",
     inputNames: ["d", "w"],
     outputNames: ["q"],
@@ -837,41 +840,41 @@ WIRE ff _ TO q _
       tc({ d: 0, w: false }, { q: 64 }),
     ],
     moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}${DLATCH}`,
-    fixedCode: `VAR d BYTEIN\nVAR w BITIN\nVAR q BYTEOUT`,
+    fixedCode: `VAR d BYTEIN\nVAR w BITIN\nVAR q BYTEOUT\nVAR ds BYTESPLIT\nWIRE d _ TO ds _\nVAR qm BYTEMERGE\nWIRE qm _ TO q _`,
     editableCode: `VAR dl0 DLATCH
-WIRE d o0 TO dl0 d
+WIRE ds o0 TO dl0 d
 WIRE w _ TO dl0 e
-WIRE dl0 _ TO q i0
+WIRE dl0 _ TO qm i0
 VAR dl1 DLATCH
-WIRE d o1 TO dl1 d
+WIRE ds o1 TO dl1 d
 WIRE w _ TO dl1 e
-WIRE dl1 _ TO q i1
+WIRE dl1 _ TO qm i1
 VAR dl2 DLATCH
-WIRE d o2 TO dl2 d
+WIRE ds o2 TO dl2 d
 WIRE w _ TO dl2 e
-WIRE dl2 _ TO q i2
+WIRE dl2 _ TO qm i2
 VAR dl3 DLATCH
-WIRE d o3 TO dl3 d
+WIRE ds o3 TO dl3 d
 WIRE w _ TO dl3 e
-WIRE dl3 _ TO q i3
+WIRE dl3 _ TO qm i3
 VAR dl4 DLATCH
-WIRE d o4 TO dl4 d
+WIRE ds o4 TO dl4 d
 WIRE w _ TO dl4 e
-WIRE dl4 _ TO q i4
+WIRE dl4 _ TO qm i4
 VAR dl5 DLATCH
-WIRE d o5 TO dl5 d
+WIRE ds o5 TO dl5 d
 WIRE w _ TO dl5 e
-WIRE dl5 _ TO q i5
+WIRE dl5 _ TO qm i5
 VAR dl6 DLATCH
-WIRE d o6 TO dl6 d
+WIRE ds o6 TO dl6 d
 WIRE w _ TO dl6 e
-WIRE dl6 _ TO q i6
+WIRE dl6 _ TO qm i6
 VAR dl7 DLATCH
-WIRE d o7 TO dl7 d
+WIRE ds o7 TO dl7 d
 WIRE w _ TO dl7 e
-WIRE dl7 _ TO q i7
+WIRE dl7 _ TO qm i7
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-byte-memory", "mod-bytein", "mod-byteout"],
   },
 ];
