@@ -48,11 +48,14 @@ export class ByteinModule implements Module {
   public readonly name = "BYTEIN";
 
   public createVariable(varName: string): Variable {
-    const outPorts = new Map<string, Reactive<boolean>>();
+    const bytePorts: Reactive<boolean>[] = [];
     for (let i = 0; i < 8; i++) {
-      outPorts.set(`o${i}`, reactive(false));
+      bytePorts.push(reactive(false));
     }
-    return new Variable(varName, new Map(), outPorts);
+    return new Variable(
+      varName, new Map(), new Map(), [],
+      new Map(), new Map([["byte", bytePorts]]),
+    );
   }
 }
 
@@ -60,11 +63,50 @@ export class ByteoutModule implements Module {
   public readonly name = "BYTEOUT";
 
   public createVariable(varName: string): Variable {
-    const inPorts = new Map<string, Reactive<boolean>>();
+    const bytePorts: Reactive<boolean>[] = [];
     for (let i = 0; i < 8; i++) {
-      inPorts.set(`i${i}`, reactive(false));
+      bytePorts.push(reactive(false));
     }
-    return new Variable(varName, inPorts, new Map());
+    return new Variable(
+      varName, new Map(), new Map(), [],
+      new Map([["byte", bytePorts]]), new Map(),
+    );
+  }
+}
+
+export class BytesplitModule implements Module {
+  public readonly name = "BYTESPLIT";
+
+  public createVariable(varName: string): Variable {
+    const byteIn: Reactive<boolean>[] = [];
+    const outPorts = new Map<string, Reactive<boolean>>();
+    for (let i = 0; i < 8; i++) {
+      const inBit = reactive(false);
+      byteIn.push(inBit);
+      outPorts.set(`o${i}`, reactive(() => inBit.value));
+    }
+    return new Variable(
+      varName, new Map(), outPorts, [],
+      new Map([["byte", byteIn]]), new Map(),
+    );
+  }
+}
+
+export class BytemergeModule implements Module {
+  public readonly name = "BYTEMERGE";
+
+  public createVariable(varName: string): Variable {
+    const inPorts = new Map<string, Reactive<boolean>>();
+    const byteOut: Reactive<boolean>[] = [];
+    for (let i = 0; i < 8; i++) {
+      const inBit = reactive(false);
+      inPorts.set(`i${i}`, inBit);
+      byteOut.push(reactive(() => inBit.value));
+    }
+    return new Variable(
+      varName, inPorts, new Map(), [],
+      new Map(), new Map([["byte", byteOut]]),
+    );
   }
 }
 
@@ -133,20 +175,12 @@ export const createModule = (
             invariant(port, "Can't find port i0 of BITIN");
             bitOuts.set(variable.name, port);
           } else if (module instanceof ByteinModule) {
-            const ports: Reactive<boolean>[] = [];
-            for (let i = 0; i < 8; i++) {
-              const port = variable.outPorts.get(`o${i}`);
-              invariant(port, `Can't find port o${i} of BYTEIN`);
-              ports.push(port);
-            }
+            const ports = variable.byteOutPorts.get("byte");
+            invariant(ports, `Can't find byte port of BYTEIN`);
             byteIns.set(variable.name, ports);
           } else if (module instanceof ByteoutModule) {
-            const ports: Reactive<boolean>[] = [];
-            for (let i = 0; i < 8; i++) {
-              const port = variable.inPorts.get(`i${i}`);
-              invariant(port, `Can't find port i${i} of BYTEOUT`);
-              ports.push(port);
-            }
+            const ports = variable.byteInPorts.get("byte");
+            invariant(ports, `Can't find byte port of BYTEOUT`);
             byteOuts.set(variable.name, ports);
           }
         } else if (statement.subtype.type === "wireStatement") {
@@ -162,50 +196,37 @@ export const createModule = (
             srcVar,
             `wire source variable not found: ${srcVariableName}`,
           );
-          if (srcPortName === "_" && srcVar.outPorts.size !== 1)
-            throw new Error(
-              `Can't determine src port name of variable:${srcVar.name}`,
-            );
-          const fixedSrcPortName =
-            srcPortName === "_"
-              ? srcVar.outPorts.entries().next().value?.[0]
-              : srcPortName;
-          invariant(fixedSrcPortName, `Can't find source port ${srcPortName}`);
-          const srcPort = srcVar.outPorts.get(fixedSrcPortName);
-          invariant(
-            srcPort,
-            `Unknown port name of variable:${fixedSrcPortName}`,
-          );
-
           const destVar = variables.find((v) => v.name === destVariableName);
           invariant(
             destVar,
             `wire destination variable not found: ${destVariableName}`,
           );
-          if (destPortName === "_" && destVar.inPorts.size !== 1)
-            throw new Error(
-              `Can't determine dest port name of variable:${destVar.name}`,
-            );
-          const fixedDestPortName =
-            destPortName === "_"
-              ? destVar.inPorts.entries().next().value?.[0]
-              : destPortName;
-          invariant(
-            fixedDestPortName,
-            `Can't find source port ${destPortName}`,
-          );
-          const destPort = destVar.inPorts.get(fixedDestPortName);
-          invariant(
-            destPort,
-            `Unknown port name of variable:${fixedDestPortName}`,
-          );
 
-          // TODO: Depends on the internal specifications of the reactively lib.
-          if (destPort["fn"] != null)
-            throw new Error(
-              `destination port ${fixedDestPortName} of ${destVar.name} already wired`,
-            );
-          destPort.set(() => srcPort.value);
+          // Resolve source port(s) - may be BIT (single) or BYTE (8-bit array)
+          const srcResolved = resolveSrcPort(srcVar, srcPortName);
+
+          if (srcResolved.type === "bit") {
+            // BIT wire: resolve destination as BIT
+            const destPort = resolveDestBitPort(destVar, destPortName);
+            // TODO: Depends on the internal specifications of the reactively lib.
+            if (destPort["fn"] != null)
+              throw new Error(
+                `destination port ${destPortName} of ${destVar.name} already wired`,
+              );
+            destPort.set(() => srcResolved.port.value);
+          } else {
+            // BYTE wire: resolve destination as BYTE
+            const destPorts = resolveDestBytePorts(destVar, destPortName);
+            for (let i = 0; i < 8; i++) {
+              // TODO: Depends on the internal specifications of the reactively lib.
+              if (destPorts[i]["fn"] != null)
+                throw new Error(
+                  `destination byte port bit ${i} of ${destVar.name} already wired`,
+                );
+              const srcBit = srcResolved.ports[i];
+              destPorts[i].set(() => srcBit.value);
+            }
+          }
         } else if (statement.subtype.type === "moduleStatement") {
           const Udm = createModule(statement.subtype, [...modules]);
           modules.push(new Udm());
@@ -218,3 +239,73 @@ export const createModule = (
   Object.defineProperty(C, "name", { value: moduleStatement.name });
   return C;
 };
+
+type BitPort = { type: "bit"; port: Reactive<boolean> };
+type BytePort = { type: "byte"; ports: Reactive<boolean>[] };
+
+function resolveSrcPort(
+  srcVar: Variable,
+  portName: string,
+): BitPort | BytePort {
+  if (portName !== "_") {
+    const bitPort = srcVar.outPorts.get(portName);
+    if (bitPort) return { type: "bit", port: bitPort };
+    const bytePorts = srcVar.byteOutPorts.get(portName);
+    if (bytePorts) return { type: "byte", ports: bytePorts };
+    throw new Error(`Unknown output port name: ${portName} of variable: ${srcVar.name}`);
+  }
+  // Wildcard "_": determine unambiguously
+  const bitCount = srcVar.outPorts.size;
+  const byteCount = srcVar.byteOutPorts.size;
+  if (bitCount === 1 && byteCount === 0) {
+    return { type: "bit", port: srcVar.outPorts.values().next().value! };
+  }
+  if (byteCount === 1 && bitCount === 0) {
+    return { type: "byte", ports: srcVar.byteOutPorts.values().next().value! };
+  }
+  throw new Error(`Can't determine src port name of variable: ${srcVar.name}`);
+}
+
+function resolveDestBitPort(
+  destVar: Variable,
+  portName: string,
+): Reactive<boolean> {
+  if (portName !== "_") {
+    const port = destVar.inPorts.get(portName);
+    if (port) return port;
+    // Check if the port name matches a byte port → type mismatch
+    if (destVar.byteInPorts.has(portName)) {
+      throw new Error(`Type mismatch: cannot wire BIT source to BYTE port "${portName}" of ${destVar.name}`);
+    }
+    throw new Error(`Unknown input port name: ${portName} of variable: ${destVar.name}`);
+  }
+  if (destVar.inPorts.size === 1 && destVar.byteInPorts.size === 0) {
+    return destVar.inPorts.values().next().value!;
+  }
+  if (destVar.inPorts.size === 0 && destVar.byteInPorts.size > 0) {
+    throw new Error(`Type mismatch: cannot wire BIT source to BYTE destination ${destVar.name} (use BYTEMERGE to convert)`);
+  }
+  throw new Error(`Can't determine dest port name of variable: ${destVar.name}`);
+}
+
+function resolveDestBytePorts(
+  destVar: Variable,
+  portName: string,
+): Reactive<boolean>[] {
+  if (portName !== "_") {
+    const bytePorts = destVar.byteInPorts.get(portName);
+    if (bytePorts) return bytePorts;
+    // Check if the port name matches a bit port → type mismatch
+    if (destVar.inPorts.has(portName)) {
+      throw new Error(`Type mismatch: cannot wire BYTE source to BIT port "${portName}" of ${destVar.name}`);
+    }
+    throw new Error(`Unknown byte input port name: ${portName} of variable: ${destVar.name}`);
+  }
+  if (destVar.byteInPorts.size === 1) {
+    return destVar.byteInPorts.values().next().value!;
+  }
+  if (destVar.byteInPorts.size === 0 && destVar.inPorts.size > 0) {
+    throw new Error(`Type mismatch: cannot wire BYTE source to BIT destination ${destVar.name} (use BYTESPLIT to convert)`);
+  }
+  throw new Error(`Can't determine byte dest port name of variable: ${destVar.name}`);
+}

@@ -279,69 +279,54 @@ MOD END
 export const BYTEADD = `\
 MOD START BYTEADD
   ${ADD}
-  VAR a0 BITIN
-  VAR a1 BITIN
-  VAR a2 BITIN
-  VAR a3 BITIN
-  VAR a4 BITIN
-  VAR a5 BITIN
-  VAR a6 BITIN
-  VAR a7 BITIN
-  VAR b0 BITIN
-  VAR b1 BITIN
-  VAR b2 BITIN
-  VAR b3 BITIN
-  VAR b4 BITIN
-  VAR b5 BITIN
-  VAR b6 BITIN
-  VAR b7 BITIN
+  VAR a BYTEIN
+  VAR b BYTEIN
+  VAR sa BYTESPLIT
+  WIRE a _ TO sa _
+  VAR sb BYTESPLIT
+  WIRE b _ TO sb _
   VAR add0 ADD
-  WIRE a0 _ TO add0 i0
-  WIRE b0 _ TO add0 i1
+  WIRE sa o0 TO add0 i0
+  WIRE sb o0 TO add0 i1
   VAR add1 ADD
-  WIRE a1 _ TO add1 i0
-  WIRE b1 _ TO add1 i1
+  WIRE sa o1 TO add1 i0
+  WIRE sb o1 TO add1 i1
   WIRE add0 o1 TO add1 i2
   VAR add2 ADD
-  WIRE a2 _ TO add2 i0
-  WIRE b2 _ TO add2 i1
+  WIRE sa o2 TO add2 i0
+  WIRE sb o2 TO add2 i1
   WIRE add1 o1 TO add2 i2
   VAR add3 ADD
-  WIRE a3 _ TO add3 i0
-  WIRE b3 _ TO add3 i1
+  WIRE sa o3 TO add3 i0
+  WIRE sb o3 TO add3 i1
   WIRE add2 o1 TO add3 i2
   VAR add4 ADD
-  WIRE a4 _ TO add4 i0
-  WIRE b4 _ TO add4 i1
+  WIRE sa o4 TO add4 i0
+  WIRE sb o4 TO add4 i1
   WIRE add3 o1 TO add4 i2
   VAR add5 ADD
-  WIRE a5 _ TO add5 i0
-  WIRE b5 _ TO add5 i1
+  WIRE sa o5 TO add5 i0
+  WIRE sb o5 TO add5 i1
   WIRE add4 o1 TO add5 i2
   VAR add6 ADD
-  WIRE a6 _ TO add6 i0
-  WIRE b6 _ TO add6 i1
+  WIRE sa o6 TO add6 i0
+  WIRE sb o6 TO add6 i1
   WIRE add5 o1 TO add6 i2
   VAR add7 ADD
-  WIRE a7 _ TO add7 i0
-  WIRE b7 _ TO add7 i1
+  WIRE sa o7 TO add7 i0
+  WIRE sb o7 TO add7 i1
   WIRE add6 o1 TO add7 i2
-  VAR o0 BITOUT
-  VAR o1 BITOUT
-  VAR o2 BITOUT
-  VAR o3 BITOUT
-  VAR o4 BITOUT
-  VAR o5 BITOUT
-  VAR o6 BITOUT
-  VAR o7 BITOUT
-  WIRE add0 o0 TO o0 _
-  WIRE add1 o0 TO o1 _
-  WIRE add2 o0 TO o2 _
-  WIRE add3 o0 TO o3 _
-  WIRE add4 o0 TO o4 _
-  WIRE add5 o0 TO o5 _
-  WIRE add6 o0 TO o6 _
-  WIRE add7 o0 TO o7 _
+  VAR m BYTEMERGE
+  WIRE add0 o0 TO m i0
+  WIRE add1 o0 TO m i1
+  WIRE add2 o0 TO m i2
+  WIRE add3 o0 TO m i3
+  WIRE add4 o0 TO m i4
+  WIRE add5 o0 TO m i5
+  WIRE add6 o0 TO m i6
+  WIRE add7 o0 TO m i7
+  VAR out BYTEOUT
+  WIRE m _ TO out _
 MOD END
 `;
 

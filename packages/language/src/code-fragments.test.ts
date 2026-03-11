@@ -795,19 +795,12 @@ test("ENC", () => {
   ]);
 });
 
-test("BYTEIN and BYTEOUT", () => {
+test("BYTEIN to BYTEOUT byte wire", () => {
   const vm = new Vm();
   vm.compile(`
     VAR a BYTEIN
     VAR out BYTEOUT
-    WIRE a o0 TO out i0
-    WIRE a o1 TO out i1
-    WIRE a o2 TO out i2
-    WIRE a o3 TO out i3
-    WIRE a o4 TO out i4
-    WIRE a o5 TO out i5
-    WIRE a o6 TO out i6
-    WIRE a o7 TO out i7
+    WIRE a _ TO out _
   `);
   expect([...vm.run(new Map([["a", 0]])).entries()]).toEqual([["out", 0]]);
   expect([...vm.run(new Map([["a", 1]])).entries()]).toEqual([["out", 1]]);
@@ -816,7 +809,32 @@ test("BYTEIN and BYTEOUT", () => {
   expect([...vm.run(new Map([["a", 128]])).entries()]).toEqual([["out", 128]]);
 });
 
-test("BYTEADD", () => {
+test("BYTESPLIT and BYTEMERGE", () => {
+  const vm = new Vm();
+  vm.compile(`
+    VAR a BYTEIN
+    VAR s BYTESPLIT
+    WIRE a _ TO s _
+    VAR m BYTEMERGE
+    WIRE s o0 TO m i0
+    WIRE s o1 TO m i1
+    WIRE s o2 TO m i2
+    WIRE s o3 TO m i3
+    WIRE s o4 TO m i4
+    WIRE s o5 TO m i5
+    WIRE s o6 TO m i6
+    WIRE s o7 TO m i7
+    VAR out BYTEOUT
+    WIRE m _ TO out _
+  `);
+  expect([...vm.run(new Map([["a", 0]])).entries()]).toEqual([["out", 0]]);
+  expect([...vm.run(new Map([["a", 1]])).entries()]).toEqual([["out", 1]]);
+  expect([...vm.run(new Map([["a", 42]])).entries()]).toEqual([["out", 42]]);
+  expect([...vm.run(new Map([["a", 255]])).entries()]).toEqual([["out", 255]]);
+  expect([...vm.run(new Map([["a", 128]])).entries()]).toEqual([["out", 128]]);
+});
+
+test("BYTEADD with byte wire", () => {
   const vm = new Vm();
   vm.compile(`
     ${BYTEADD}
@@ -824,30 +842,9 @@ test("BYTEADD", () => {
     VAR b BYTEIN
     VAR out BYTEOUT
     VAR add BYTEADD
-    WIRE a o0 TO add a0
-    WIRE a o1 TO add a1
-    WIRE a o2 TO add a2
-    WIRE a o3 TO add a3
-    WIRE a o4 TO add a4
-    WIRE a o5 TO add a5
-    WIRE a o6 TO add a6
-    WIRE a o7 TO add a7
-    WIRE b o0 TO add b0
-    WIRE b o1 TO add b1
-    WIRE b o2 TO add b2
-    WIRE b o3 TO add b3
-    WIRE b o4 TO add b4
-    WIRE b o5 TO add b5
-    WIRE b o6 TO add b6
-    WIRE b o7 TO add b7
-    WIRE add o0 TO out i0
-    WIRE add o1 TO out i1
-    WIRE add o2 TO out i2
-    WIRE add o3 TO out i3
-    WIRE add o4 TO out i4
-    WIRE add o5 TO out i5
-    WIRE add o6 TO out i6
-    WIRE add o7 TO out i7
+    WIRE a _ TO add a
+    WIRE b _ TO add b
+    WIRE add out TO out _
   `);
   expect([...vm.run(new Map([["a", 0], ["b", 0]])).entries()]).toEqual([["out", 0]]);
   expect([...vm.run(new Map([["a", 1], ["b", 1]])).entries()]).toEqual([["out", 2]]);
@@ -855,6 +852,42 @@ test("BYTEADD", () => {
   expect([...vm.run(new Map([["a", 127], ["b", 128]])).entries()]).toEqual([["out", 255]]);
   // Overflow: 200 + 100 = 300 → 300 - 256 = 44
   expect([...vm.run(new Map([["a", 200], ["b", 100]])).entries()]).toEqual([["out", 44]]);
+});
+
+test("BIT to BYTE type mismatch error", () => {
+  const vm = new Vm();
+  expect(() => vm.compile(`
+    VAR a BITIN
+    VAR out BYTEOUT
+    WIRE a _ TO out _
+  `)).toThrow("Type mismatch: cannot wire BIT source to BYTE destination out");
+});
+
+test("BYTE to BIT type mismatch error", () => {
+  const vm = new Vm();
+  expect(() => vm.compile(`
+    VAR a BYTEIN
+    VAR out BITOUT
+    WIRE a _ TO out _
+  `)).toThrow("Type mismatch: cannot wire BYTE source to BIT destination out");
+});
+
+test("BIT to BYTE port name type mismatch error", () => {
+  const vm = new Vm();
+  expect(() => vm.compile(`
+    VAR a BITIN
+    VAR s BYTESPLIT
+    WIRE a _ TO s byte
+  `)).toThrow("Type mismatch: cannot wire BIT source to BYTE port");
+});
+
+test("BYTE to BIT port name type mismatch error", () => {
+  const vm = new Vm();
+  expect(() => vm.compile(`
+    VAR m BYTEMERGE
+    VAR out BITOUT
+    WIRE m byte TO out _
+  `)).toThrow("Type mismatch: cannot wire BYTE source to BIT destination out");
 });
 
 test("DLATCH", () => {

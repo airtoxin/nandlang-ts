@@ -2,15 +2,17 @@ import type { Node, Edge } from "@xyflow/react";
 import type { Program, SubStatement } from "@nandlang-ts/language/parser/ast";
 import dagre from "dagre";
 
-type PortInfo = { inputs: string[]; outputs: string[] };
+type PortInfo = { inputs: string[]; outputs: string[]; byteInputs: string[]; byteOutputs: string[] };
 
 const BUILTIN_PORTS: Record<string, PortInfo> = {
-  NAND: { inputs: ["i0", "i1"], outputs: ["o0"] },
-  BITIN: { inputs: [], outputs: ["o0"] },
-  BITOUT: { inputs: ["i0"], outputs: [] },
-  BYTEIN: { inputs: [], outputs: ["o0", "o1", "o2", "o3", "o4", "o5", "o6", "o7"] },
-  BYTEOUT: { inputs: ["i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7"], outputs: [] },
-  FLIPFLOP: { inputs: ["s", "r"], outputs: ["q"] },
+  NAND: { inputs: ["i0", "i1"], outputs: ["o0"], byteInputs: [], byteOutputs: [] },
+  BITIN: { inputs: [], outputs: ["o0"], byteInputs: [], byteOutputs: [] },
+  BITOUT: { inputs: ["i0"], outputs: [], byteInputs: [], byteOutputs: [] },
+  BYTEIN: { inputs: [], outputs: [], byteInputs: [], byteOutputs: ["byte"] },
+  BYTEOUT: { inputs: [], outputs: [], byteInputs: ["byte"], byteOutputs: [] },
+  BYTESPLIT: { inputs: [], outputs: ["o0", "o1", "o2", "o3", "o4", "o5", "o6", "o7"], byteInputs: ["byte"], byteOutputs: [] },
+  BYTEMERGE: { inputs: ["i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7"], outputs: [], byteInputs: [], byteOutputs: ["byte"] },
+  FLIPFLOP: { inputs: ["s", "r"], outputs: ["q"], byteInputs: [], byteOutputs: [] },
 };
 
 function resolveModulePorts(
@@ -20,7 +22,7 @@ function resolveModulePorts(
   if (BUILTIN_PORTS[moduleName]) return BUILTIN_PORTS[moduleName];
   const info = moduleDefs.get(moduleName);
   if (info) return info;
-  return { inputs: [], outputs: [] };
+  return { inputs: [], outputs: [], byteInputs: [], byteOutputs: [] };
 }
 
 function collectModuleDefs(
@@ -31,22 +33,21 @@ function collectModuleDefs(
     if (st.type === "moduleStatement") {
       const inputs: string[] = [];
       const outputs: string[] = [];
+      const byteInputs: string[] = [];
+      const byteOutputs: string[] = [];
       for (const defSt of st.definitionStatements) {
-        if (
-          defSt.subtype.type === "varStatement" &&
-          defSt.subtype.moduleName === "BITIN"
-        ) {
-          inputs.push(defSt.subtype.variableName);
-        } else if (
-          defSt.subtype.type === "varStatement" &&
-          defSt.subtype.moduleName === "BITOUT"
-        ) {
-          outputs.push(defSt.subtype.variableName);
+        if (defSt.subtype.type === "varStatement") {
+          const mod = defSt.subtype.moduleName;
+          const name = defSt.subtype.variableName;
+          if (mod === "BITIN") inputs.push(name);
+          else if (mod === "BITOUT") outputs.push(name);
+          else if (mod === "BYTEIN") byteInputs.push(name);
+          else if (mod === "BYTEOUT") byteOutputs.push(name);
         } else if (defSt.subtype.type === "moduleStatement") {
           collectModuleDefs([defSt.subtype], moduleDefs);
         }
       }
-      moduleDefs.set(st.name, { inputs, outputs });
+      moduleDefs.set(st.name, { inputs, outputs, byteInputs, byteOutputs });
       // Recurse for nested module defs
       collectModuleDefs(
         st.definitionStatements.map((s) => s.subtype),
@@ -61,6 +62,8 @@ export type NodeData = {
   moduleName: string;
   inputs: string[];
   outputs: string[];
+  byteInputs: string[];
+  byteOutputs: string[];
   value?: boolean | number;
 };
 
@@ -114,6 +117,8 @@ export function astToGraph(ast: Program): {
         moduleName: st.moduleName,
         inputs: ports.inputs,
         outputs: ports.outputs,
+        byteInputs: ports.byteInputs,
+        byteOutputs: ports.byteOutputs,
       },
     });
   }
@@ -122,27 +127,46 @@ export function astToGraph(ast: Program): {
   for (const st of subStatements) {
     if (st.type !== "wireStatement") continue;
 
+    const srcPorts = varPorts.get(st.srcVariableName);
+    const destPorts = varPorts.get(st.destVariableName);
+
     let srcHandle = st.srcPortName;
     let destHandle = st.destPortName;
 
-    // Resolve "_" port
-    if (srcHandle === "_") {
-      const ports = varPorts.get(st.srcVariableName);
-      if (ports && ports.outputs.length === 1) srcHandle = ports.outputs[0];
-    }
-    if (destHandle === "_") {
-      const ports = varPorts.get(st.destVariableName);
-      if (ports && ports.inputs.length === 1) destHandle = ports.inputs[0];
-    }
+    // Determine if this is a byte wire
+    const isByteWire = isResolvedAsByteWire(srcHandle, srcPorts, destHandle, destPorts);
 
-    edges.push({
-      id: `${st.srcVariableName}.${srcHandle}-${st.destVariableName}.${destHandle}`,
-      source: st.srcVariableName,
-      sourceHandle: srcHandle,
-      target: st.destVariableName,
-      targetHandle: destHandle,
-      animated: true,
-    });
+    if (isByteWire) {
+      // Generate single bus edge for BYTE wire
+      const srcBusHandle = resolveByteSourceBusHandle(srcHandle, srcPorts);
+      const destBusHandle = resolveByteDestBusHandle(destHandle, destPorts);
+      edges.push({
+        id: `${st.srcVariableName}.${srcBusHandle}-${st.destVariableName}.${destBusHandle}`,
+        source: st.srcVariableName,
+        sourceHandle: srcBusHandle,
+        target: st.destVariableName,
+        targetHandle: destBusHandle,
+        animated: true,
+        style: { strokeWidth: 3, stroke: "#6366f1" },
+      });
+    } else {
+      // Resolve "_" port for BIT wire
+      if (srcHandle === "_") {
+        if (srcPorts && srcPorts.outputs.length === 1) srcHandle = srcPorts.outputs[0];
+      }
+      if (destHandle === "_") {
+        if (destPorts && destPorts.inputs.length === 1) destHandle = destPorts.inputs[0];
+      }
+
+      edges.push({
+        id: `${st.srcVariableName}.${srcHandle}-${st.destVariableName}.${destHandle}`,
+        source: st.srcVariableName,
+        sourceHandle: srcHandle,
+        target: st.destVariableName,
+        targetHandle: destHandle,
+        animated: true,
+      });
+    }
   }
 
   // Apply dagre layout
@@ -151,8 +175,14 @@ export function astToGraph(ast: Program): {
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of nodes) {
-    const isByte = node.type === "byteinNode" || node.type === "byteoutNode";
-    g.setNode(node.id, { width: NODE_WIDTH, height: isByte ? 200 : NODE_HEIGHT });
+    const data = node.data as NodeData;
+    const maxHandles = Math.max(
+      data.inputs.length + data.byteInputs.length,
+      data.outputs.length + data.byteOutputs.length,
+      1,
+    );
+    const nodeHeight = Math.max(NODE_HEIGHT, maxHandles * 30);
+    g.setNode(node.id, { width: NODE_WIDTH, height: nodeHeight });
   }
   for (const edge of edges) {
     g.setEdge(edge.source, edge.target);
@@ -175,4 +205,37 @@ export function astToGraph(ast: Program): {
   }
 
   return { nodes, edges, inputNames, outputNames };
+}
+
+function isSrcByte(handle: string, ports: PortInfo | undefined): boolean {
+  if (!ports) return false;
+  if (handle !== "_") {
+    return ports.byteOutputs.includes(handle);
+  }
+  return ports.byteOutputs.length === 1 && ports.outputs.length === 0;
+}
+
+function isDestByte(handle: string, ports: PortInfo | undefined): boolean {
+  if (!ports) return false;
+  if (handle !== "_") {
+    return ports.byteInputs.includes(handle);
+  }
+  return ports.byteInputs.length === 1 && ports.inputs.length === 0;
+}
+
+function isResolvedAsByteWire(
+  srcHandle: string,
+  srcPorts: PortInfo | undefined,
+  destHandle: string,
+  destPorts: PortInfo | undefined,
+): boolean {
+  return isSrcByte(srcHandle, srcPorts) && isDestByte(destHandle, destPorts);
+}
+
+function resolveByteSourceBusHandle(handle: string, ports: PortInfo | undefined): string {
+  return handle === "_" ? ports?.byteOutputs[0] ?? handle : handle;
+}
+
+function resolveByteDestBusHandle(handle: string, ports: PortInfo | undefined): string {
+  return handle === "_" ? ports?.byteInputs[0] ?? handle : handle;
 }

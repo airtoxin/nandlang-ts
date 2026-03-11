@@ -21,38 +21,42 @@ const moduleDefs = `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC
 const lv19Code = `${moduleDefs}VAR d BYTEIN
 VAR w BITIN
 VAR q BYTEOUT
+VAR ds BYTESPLIT
+WIRE d _ TO ds _
+VAR qm BYTEMERGE
+WIRE qm _ TO q _
 VAR dl0 DLATCH
-WIRE d o0 TO dl0 d
+WIRE ds o0 TO dl0 d
 WIRE w _ TO dl0 e
-WIRE dl0 _ TO q i0
+WIRE dl0 _ TO qm i0
 VAR dl1 DLATCH
-WIRE d o1 TO dl1 d
+WIRE ds o1 TO dl1 d
 WIRE w _ TO dl1 e
-WIRE dl1 _ TO q i1
+WIRE dl1 _ TO qm i1
 VAR dl2 DLATCH
-WIRE d o2 TO dl2 d
+WIRE ds o2 TO dl2 d
 WIRE w _ TO dl2 e
-WIRE dl2 _ TO q i2
+WIRE dl2 _ TO qm i2
 VAR dl3 DLATCH
-WIRE d o3 TO dl3 d
+WIRE ds o3 TO dl3 d
 WIRE w _ TO dl3 e
-WIRE dl3 _ TO q i3
+WIRE dl3 _ TO qm i3
 VAR dl4 DLATCH
-WIRE d o4 TO dl4 d
+WIRE ds o4 TO dl4 d
 WIRE w _ TO dl4 e
-WIRE dl4 _ TO q i4
+WIRE dl4 _ TO qm i4
 VAR dl5 DLATCH
-WIRE d o5 TO dl5 d
+WIRE ds o5 TO dl5 d
 WIRE w _ TO dl5 e
-WIRE dl5 _ TO q i5
+WIRE dl5 _ TO qm i5
 VAR dl6 DLATCH
-WIRE d o6 TO dl6 d
+WIRE ds o6 TO dl6 d
 WIRE w _ TO dl6 e
-WIRE dl6 _ TO q i6
+WIRE dl6 _ TO qm i6
 VAR dl7 DLATCH
-WIRE d o7 TO dl7 d
+WIRE ds o7 TO dl7 d
 WIRE w _ TO dl7 e
-WIRE dl7 _ TO q i7
+WIRE dl7 _ TO qm i7
 `;
 
 describe("performance", () => {
