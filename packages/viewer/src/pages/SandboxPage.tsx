@@ -7,15 +7,15 @@ import { CircuitDiagramPanel } from "../components/CircuitDiagramPanel";
 import { useCircuit } from "../hooks/useCircuit";
 import {
   ON, NOT, AND, AND3, OR, OR3, NOR, XOR, XNOR,
-  ADD, DEC, ENC, BYTEADD, DLATCH,
+  ADD, DEC, ENC, BYTEADD, DLATCH, MUX, DMUX,
 } from "@nandlang-ts/language/code-fragments";
 import "./SandboxPage.css";
 
-const PRELOADED_MODULES = `${ON}${NOT}${AND}${AND3}${OR}${OR3}${NOR}${XOR}${XNOR}${ADD}${DEC}${ENC}${BYTEADD}${DLATCH}`;
+const PRELOADED_MODULES = `${ON}${NOT}${AND}${AND3}${OR}${OR3}${NOR}${XOR}${XNOR}${ADD}${DEC}${ENC}${BYTEADD}${DLATCH}${MUX}${DMUX}`;
 
 const AVAILABLE_MODULE_NAMES = [
   "ON", "NOT", "AND", "AND3", "OR", "OR3", "NOR", "XOR", "XNOR",
-  "ADD", "DEC", "ENC", "BYTEADD", "DLATCH",
+  "ADD", "DEC", "ENC", "BYTEADD", "DLATCH", "MUX", "DMUX",
 ];
 
 const DEFAULT_CODE = `VAR a BITIN

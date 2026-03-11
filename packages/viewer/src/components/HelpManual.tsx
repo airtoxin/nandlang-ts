@@ -585,6 +585,84 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "circuit-mux",
+    category: "circuit",
+    title: "MUX: マルチプレクサー",
+    content: (
+      <>
+        <p>
+          セレクタ信号で2つの入力のどちらかを選択して出力する回路です。
+          データの切り替えやルーティングに使われます。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>a</code></td><td>入力</td><td>データ入力0</td></tr>
+            <tr><td><code>b</code></td><td>入力</td><td>データ入力1</td></tr>
+            <tr><td><code>sel</code></td><td>入力</td><td>セレクタ（0=a, 1=b）</td></tr>
+            <tr><td><code>out</code> / <code>_</code></td><td>出力</td><td>選択された入力の値</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead>
+            <tr><th>sel</th><th>out</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>a</td></tr>
+            <tr><td>1</td><td>b</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            各入力をANDゲートでセレクタの値に応じて有効/無効にし、
+            結果をORで合流させます。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
+    id: "circuit-dmux",
+    category: "circuit",
+    title: "DMUX: デマルチプレクサー",
+    content: (
+      <>
+        <p>
+          MUXの逆で、1つの入力をセレクタ信号に応じて2つの出力のどちらかに振り分ける回路です。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>in</code></td><td>入力</td><td>データ入力</td></tr>
+            <tr><td><code>sel</code></td><td>入力</td><td>セレクタ（0=a, 1=b）</td></tr>
+            <tr><td><code>a</code></td><td>出力</td><td>sel=0のときinの値、それ以外は0</td></tr>
+            <tr><td><code>b</code></td><td>出力</td><td>sel=1のときinの値、それ以外は0</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead>
+            <tr><th>sel</th><th>a</th><th>b</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>in</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>in</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            入力信号をANDゲートでセレクタの値に応じてそれぞれの出力に振り分けます。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
     id: "mod-flipflop",
     category: "module",
     title: "FLIPFLOP: 記憶素子",
