@@ -423,3 +423,48 @@ MOD START DECODER_3BIT
   WIRE and7 _ TO o7 _
 MOD END
 `;
+
+export const MUX = `\
+MOD START MUX
+  ${NOT}
+  ${AND}
+  ${OR}
+  VAR a BITIN
+  VAR b BITIN
+  VAR sel BITIN
+  VAR nsel NOT
+  WIRE sel _ TO nsel _
+  VAR and0 AND
+  WIRE a _ TO and0 i0
+  WIRE nsel _ TO and0 i1
+  VAR and1 AND
+  WIRE b _ TO and1 i0
+  WIRE sel _ TO and1 i1
+  VAR or OR
+  WIRE and0 _ TO or i0
+  WIRE and1 _ TO or i1
+  VAR out BITOUT
+  WIRE or _ TO out _
+MOD END
+`;
+
+export const DMUX = `\
+MOD START DMUX
+  ${NOT}
+  ${AND}
+  VAR in BITIN
+  VAR sel BITIN
+  VAR nsel NOT
+  WIRE sel _ TO nsel _
+  VAR and0 AND
+  WIRE in _ TO and0 i0
+  WIRE nsel _ TO and0 i1
+  VAR a BITOUT
+  WIRE and0 _ TO a _
+  VAR and1 AND
+  WIRE in _ TO and1 i0
+  WIRE sel _ TO and1 i1
+  VAR b BITOUT
+  WIRE and1 _ TO b _
+MOD END
+`;

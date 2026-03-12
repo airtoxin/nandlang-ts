@@ -11,6 +11,8 @@ import {
   DEC,
   ENC,
   DLATCH,
+  MUX,
+  DMUX,
 } from "@nandlang-ts/language/code-fragments";
 
 export type PuzzleTestCase = {
@@ -314,7 +316,90 @@ WIRE o1 _ TO out _
   },
   {
     id: 12,
-    title: "Lv12: Half Adder",
+    title: "Lv12: MUX",
+    description:
+      "マルチプレクサー（MUX）は、セレクタ信号で2つの入力のどちらかを選択して出力する回路です。\n\n" +
+      "入力:\n" +
+      "  a, b = データ入力\n" +
+      "  sel = セレクタ（0ならaを選択、1ならbを選択）\n\n" +
+      "出力:\n" +
+      "  out = 選択された入力の値\n\n" +
+      "ヒント: セレクタが0のときはa側だけを、1のときはb側だけを有効にするにはどうすればよいか考えてみましょう。" +
+      "それぞれの結果を合流させれば完成です。",
+    inputNames: ["a", "b", "sel"],
+    outputNames: ["out"],
+    testCases: [
+      // sel=0 → aを選択
+      tc({ a: false, b: false, sel: false }, { out: false }),
+      tc({ a: true, b: false, sel: false }, { out: true }),
+      tc({ a: false, b: true, sel: false }, { out: false }),
+      tc({ a: true, b: true, sel: false }, { out: true }),
+      // sel=1 → bを選択
+      tc({ a: false, b: false, sel: true }, { out: false }),
+      tc({ a: true, b: false, sel: true }, { out: false }),
+      tc({ a: false, b: true, sel: true }, { out: true }),
+      tc({ a: true, b: true, sel: true }, { out: true }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}`,
+    fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR sel BITIN\nVAR out BITOUT`,
+    editableCode: `VAR nsel NOT
+WIRE sel _ TO nsel _
+VAR and0 AND
+WIRE a _ TO and0 i0
+WIRE nsel _ TO and0 i1
+VAR and1 AND
+WIRE b _ TO and1 i0
+WIRE sel _ TO and1 i1
+VAR or OR
+WIRE and0 _ TO or i0
+WIRE and1 _ TO or i1
+WIRE or _ TO out _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3"],
+    helpSections: ["circuit-mux"],
+  },
+  {
+    id: 13,
+    title: "Lv13: DMUX",
+    description:
+      "デマルチプレクサー（DMUX）はMUXの逆で、1つの入力をセレクタ信号に応じて2つの出力のどちらかに振り分けます。\n\n" +
+      "入力:\n" +
+      "  in = データ入力\n" +
+      "  sel = セレクタ（0ならaに出力、1ならbに出力）\n\n" +
+      "出力:\n" +
+      "  a = sel=0のときinの値、sel=1のとき0\n" +
+      "  b = sel=1のときinの値、sel=0のとき0\n\n" +
+      "MUXが「選んで合流」ならDMUXは「選んで分岐」です。" +
+      "入力信号をセレクタの値に応じて片方の出力だけに通す方法を考えてみましょう。",
+    inputNames: ["in", "sel"],
+    outputNames: ["a", "b"],
+    testCases: [
+      // sel=0 → aにinを出力、b=0
+      tc({ in: false, sel: false }, { a: false, b: false }),
+      tc({ in: true, sel: false }, { a: true, b: false }),
+      // sel=1 → a=0、bにinを出力
+      tc({ in: false, sel: true }, { a: false, b: false }),
+      tc({ in: true, sel: true }, { a: false, b: true }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}`,
+    fixedCode: `VAR in BITIN\nVAR sel BITIN\nVAR a BITOUT\nVAR b BITOUT`,
+    editableCode: `VAR nsel NOT
+WIRE sel _ TO nsel _
+VAR and0 AND
+WIRE in _ TO and0 i0
+WIRE nsel _ TO and0 i1
+WIRE and0 _ TO a _
+VAR and1 AND
+WIRE in _ TO and1 i0
+WIRE sel _ TO and1 i1
+WIRE and1 _ TO b _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX"],
+    helpSections: ["circuit-dmux"],
+  },
+  {
+    id: 14,
+    title: "Lv14: Half Adder",
     description:
       "コンピュータの計算の基本、2進数の足し算を回路で実現しましょう！\n\n" +
       "私たちが普段使う10進数の足し算（例: 7+5=12）では、1桁に収まらないとき繰り上がりが発生します。" +
@@ -334,7 +419,7 @@ WIRE o1 _ TO out _
       tc({ a: true, b: false }, { s: true, c: false }),
       tc({ a: true, b: true }, { s: false, c: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}`,
     fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR s BITOUT\nVAR c BITOUT`,
     editableCode: `VAR xor XOR
 VAR and AND
@@ -345,12 +430,12 @@ WIRE a _ TO and i0
 WIRE b _ TO and i1
 WIRE and _ TO c _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX"],
     helpSections: ["circuit-half-adder"],
   },
   {
-    id: 13,
-    title: "Lv13: Full Adder",
+    id: 15,
+    title: "Lv15: Full Adder",
     description:
       "Half Adderでは1ビット同士の足し算ができましたが、複数桁の足し算には対応できません。\n\n" +
       "例えば2桁の2進数 11+01 を計算するとき、1の位の 1+1=10 で繰り上がりが発生し、" +
@@ -375,7 +460,7 @@ WIRE and _ TO c _
       tc({ a: true, b: true, cin: false }, { s: false, cout: true }),
       tc({ a: true, b: true, cin: true }, { s: true, cout: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}`,
     fixedCode: `VAR a BITIN\nVAR b BITIN\nVAR cin BITIN\nVAR s BITOUT\nVAR cout BITOUT`,
     editableCode: `VAR xor0 XOR
 VAR xor1 XOR
@@ -395,12 +480,12 @@ WIRE and0 _ TO or0 i0
 WIRE and1 _ TO or0 i1
 WIRE or0 _ TO cout _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX"],
     helpSections: ["circuit-half-adder", "circuit-full-adder"],
   },
   {
-    id: 14,
-    title: "Lv14: Decoder",
+    id: 16,
+    title: "Lv16: Decoder",
     description:
       "デコーダは、2進数の入力パターンを解読して、対応する1本の出力線だけを有効にする回路です。\n\n" +
       "3ビットの入力（i0, i1, i2）は 0〜7 の8通りの値を表現できます。" +
@@ -420,7 +505,7 @@ WIRE or0 _ TO cout _
       tc({ i0: false, i1: true, i2: true }, { o0: false, o1: false, o2: false, o3: false, o4: false, o5: false, o6: true, o7: false }),
       tc({ i0: true, i1: true, i2: true }, { o0: false, o1: false, o2: false, o3: false, o4: false, o5: false, o6: false, o7: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}`,
     fixedCode: `VAR i0 BITIN\nVAR i1 BITIN\nVAR i2 BITIN\nVAR o0 BITOUT\nVAR o1 BITOUT\nVAR o2 BITOUT\nVAR o3 BITOUT\nVAR o4 BITOUT\nVAR o5 BITOUT\nVAR o6 BITOUT\nVAR o7 BITOUT`,
     editableCode: `VAR n0 NOT
 VAR n1 NOT
@@ -469,12 +554,12 @@ WIRE i1 _ TO a7 i1
 WIRE i2 _ TO a7 i2
 WIRE a7 _ TO o7 _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD"],
     helpSections: ["circuit-decoder"],
   },
   {
-    id: 15,
-    title: "Lv15: Encoder",
+    id: 17,
+    title: "Lv17: Encoder",
     description:
       "エンコーダはデコーダの逆です。8本の入力線のうち1本だけが有効なとき、" +
       "どの線が有効かを3ビットの2進数で出力します。\n\n" +
@@ -496,7 +581,7 @@ WIRE a7 _ TO o7 _
       tc({ i0: false, i1: false, i2: false, i3: false, i4: false, i5: false, i6: true, i7: false }, { o0: false, o1: true, o2: true }),
       tc({ i0: false, i1: false, i2: false, i3: false, i4: false, i5: false, i6: false, i7: true }, { o0: true, o1: true, o2: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}`,
     fixedCode: `VAR i0 BITIN\nVAR i1 BITIN\nVAR i2 BITIN\nVAR i3 BITIN\nVAR i4 BITIN\nVAR i5 BITIN\nVAR i6 BITIN\nVAR i7 BITIN\nVAR o0 BITOUT\nVAR o1 BITOUT\nVAR o2 BITOUT`,
     editableCode: `VAR or00 OR
 WIRE i1 _ TO or00 i0
@@ -529,12 +614,12 @@ WIRE or20 _ TO or22 i0
 WIRE or21 _ TO or22 i1
 WIRE or22 _ TO o2 _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC"],
     helpSections: ["circuit-decoder", "circuit-encoder"],
   },
   {
-    id: 16,
-    title: "Lv16: Byte Add",
+    id: 18,
+    title: "Lv18: Byte Add",
     description:
       "いよいよ整数の足し算です！\n\n" +
       "BYTEINは0〜255の整数をバイト信号として受け取ります。" +
@@ -595,7 +680,7 @@ WIRE or22 _ TO o2 _
       tc({ a: 170, b: 85 }, { out: 255 }),  // 10101010 + 01010101 = 11111111
       tc({ a: 85, b: 170 }, { out: 255 }),  // 交換法則
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR a BYTEIN\nVAR b BYTEIN\nVAR out BYTEOUT\nVAR sa BYTESPLIT\nWIRE a _ TO sa _\nVAR sb BYTESPLIT\nWIRE b _ TO sb _\nVAR m BYTEMERGE\nWIRE m _ TO out _`,
     editableCode: `VAR add0 ADD
 WIRE sa o0 TO add0 i0
@@ -637,12 +722,12 @@ WIRE sb o7 TO add7 i1
 WIRE add6 o1 TO add7 i2
 WIRE add7 o0 TO m i7
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "BYTESPLIT", "BYTEMERGE"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["circuit-full-adder", "mod-bytein", "mod-byteout"],
   },
   {
-    id: 17,
-    title: "Lv17: SR Latch",
+    id: 19,
+    title: "Lv19: SR Latch",
     description:
       "ここからは「記憶」を持つ回路に挑戦します！\n\n" +
       "これまでの回路はすべて組み合わせ回路（入力が決まれば出力が決まる）でしたが、" +
@@ -690,19 +775,19 @@ WIRE add7 o0 TO m i7
       tc({ s: false, r: false }, { q: true }),
       tc({ s: false, r: false }, { q: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR s BITIN\nVAR r BITIN\nVAR q BITOUT`,
     editableCode: `VAR ff FLIPFLOP
 WIRE s _ TO ff s
 WIRE r _ TO ff r
 WIRE ff _ TO q _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP"],
     helpSections: ["mod-flipflop", "circuit-sr-latch"],
   },
   {
-    id: 18,
-    title: "Lv18: D Latch",
+    id: 20,
+    title: "Lv20: D Latch",
     description:
       "SR Latchでは「セット」と「リセット」を別々に制御しましたが、" +
       "実際のメモリでは「この値を覚えて」という操作の方が自然です。\n\n" +
@@ -757,7 +842,7 @@ WIRE ff _ TO q _
       tc({ d: true, e: true }, { q: true }),
       tc({ d: false, e: false }, { q: true }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}`,
     fixedCode: `VAR d BITIN\nVAR e BITIN\nVAR q BITOUT`,
     editableCode: `VAR not NOT
 VAR and_s AND
@@ -772,12 +857,12 @@ WIRE and_s _ TO ff s
 WIRE and_r _ TO ff r
 WIRE ff _ TO q _
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP"],
     helpSections: ["mod-flipflop", "circuit-sr-latch", "circuit-d-latch"],
   },
   {
-    id: 19,
-    title: "Lv19: Byte Memory",
+    id: 21,
+    title: "Lv21: Byte Memory",
     description:
       "D Latchで1ビットの記憶ができました。これを8個並べれば、1バイト（0〜255）を記憶できます！\n\n" +
       "入力:\n" +
@@ -839,7 +924,7 @@ WIRE ff _ TO q _
       tc({ d: 64, w: true }, { q: 64 }),
       tc({ d: 0, w: false }, { q: 64 }),
     ],
-    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${ADD}${DEC}${ENC}${DLATCH}`,
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}`,
     fixedCode: `VAR d BYTEIN\nVAR w BITIN\nVAR q BYTEOUT\nVAR ds BYTESPLIT\nWIRE d _ TO ds _\nVAR qm BYTEMERGE\nWIRE qm _ TO q _`,
     editableCode: `VAR dl0 DLATCH
 WIRE ds o0 TO dl0 d
@@ -874,7 +959,7 @@ WIRE ds o7 TO dl7 d
 WIRE w _ TO dl7 e
 WIRE dl7 _ TO qm i7
 `,
-    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "BYTESPLIT", "BYTEMERGE"],
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-byte-memory", "mod-bytein", "mod-byteout"],
   },
 ];
