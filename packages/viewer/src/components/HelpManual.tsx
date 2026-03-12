@@ -795,6 +795,38 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "circuit-byte-register",
+    category: "circuit",
+    title: "Byte Register: 8ビットレジスタ（エッジトリガ）",
+    content: (
+      <>
+        <p>
+          REGを8個並列に並べて、8ビット（1バイト）の値をエッジトリガで記憶する回路です。
+          クロック信号clkは全ビットで共有します。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>d</code> (BYTEIN)</td><td>入力</td><td>記憶したい8ビット値</td></tr>
+            <tr><td><code>clk</code> (BITIN)</td><td>入力</td><td>クロック信号</td></tr>
+            <tr><td><code>q</code> (BYTEOUT)</td><td>出力</td><td>記憶されている8ビット値</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            Byte Memoryと同じ構造ですが、DLATCHの代わりにREGを使います。
+            BYTESPLITで分解した各ビットをREGのdに、
+            clkをすべてのREGのclkに接続し、
+            各REGの出力をBYTEMERGEで合成します。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
     id: "circuit-byte-memory",
     category: "module",
     title: "Byte Memory: バイトメモリ",
