@@ -13,6 +13,7 @@ const BUILTIN_PORTS: Record<string, PortInfo> = {
   BYTESPLIT: { inputs: [], outputs: ["o0", "o1", "o2", "o3", "o4", "o5", "o6", "o7"], byteInputs: ["byte"], byteOutputs: [] },
   BYTEMERGE: { inputs: ["i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7"], outputs: [], byteInputs: [], byteOutputs: ["byte"] },
   FLIPFLOP: { inputs: ["s", "r"], outputs: ["q"], byteInputs: [], byteOutputs: [] },
+  COUNTER: { inputs: ["reset", "inc"], outputs: [], byteInputs: ["load"], byteOutputs: ["count"] },
 };
 
 function resolveModulePorts(

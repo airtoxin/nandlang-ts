@@ -2,6 +2,8 @@ import { Reactive } from "@reactively/core";
 import { Module } from "./module";
 
 export class Variable {
+  public onBeforeRead?: () => void;
+
   constructor(
     public readonly name: string,
     public readonly inPorts: Map<string, Reactive<boolean>>,
@@ -10,4 +12,11 @@ export class Variable {
     public readonly byteInPorts: Map<string, Reactive<boolean>[]> = new Map(),
     public readonly byteOutPorts: Map<string, Reactive<boolean>[]> = new Map(),
   ) {}
+
+  public invokeBeforeRead(): void {
+    for (const child of this.children) {
+      child.invokeBeforeRead();
+    }
+    this.onBeforeRead?.();
+  }
 }

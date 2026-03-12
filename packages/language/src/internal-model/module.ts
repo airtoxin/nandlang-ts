@@ -138,6 +138,62 @@ export class FlipflopModule implements Module {
   }
 }
 
+export class CounterModule implements Module {
+  public readonly name = "COUNTER";
+
+  public createVariable(varName: string): Variable {
+    const reset = reactive(false);
+    const inc = reactive(false);
+    const loadBits: Reactive<boolean>[] = [];
+    for (let i = 0; i < 8; i++) {
+      loadBits.push(reactive(false));
+    }
+
+    let state = 0;
+
+    const countBits: Reactive<boolean>[] = [];
+    for (let i = 0; i < 8; i++) {
+      countBits.push(reactive(false));
+    }
+
+    const variable = new Variable(
+      varName,
+      new Map([
+        ["reset", reset],
+        ["inc", inc],
+      ]),
+      new Map(),
+      [],
+      new Map([["load", loadBits]]),
+      new Map([["count", countBits]]),
+    );
+
+    variable.onBeforeRead = () => {
+      const r = reset.value;
+      const n = inc.value;
+      let loadVal = 0;
+      for (let j = 0; j < 8; j++) {
+        if (loadBits[j].value) loadVal |= (1 << j);
+      }
+
+      if (r) {
+        state = 0;
+      } else if (loadVal !== 0) {
+        state = loadVal;
+      } else if (n) {
+        state = (state + 1) & 0xFF;
+      }
+
+      for (let i = 0; i < 8; i++) {
+        const bit = ((state >> i) & 1) === 1;
+        countBits[i].set(() => bit);
+      }
+    };
+
+    return variable;
+  }
+}
+
 export const createModule = (
   moduleStatement: Extract<SubStatement, { type: "moduleStatement" }>,
   availableModules: Module[],

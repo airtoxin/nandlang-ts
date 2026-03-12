@@ -991,6 +991,60 @@ test("BYTEREG", () => {
   expect([...vm.run(new Map<string, boolean | number>([["d", 0], ["clk", true]])).entries()]).toEqual([["q", 0]]);
 });
 
+test("COUNTER", () => {
+  const vm = new Vm();
+  vm.compile(`
+    VAR reset BITIN
+    VAR load BYTEIN
+    VAR inc BITIN
+    VAR count BYTEOUT
+
+    VAR ctr COUNTER
+    WIRE reset _ TO ctr reset
+    WIRE load _ TO ctr load
+    WIRE inc _ TO ctr inc
+    WIRE ctr count TO count _
+  `);
+  const run = (reset: boolean, load: number, inc: boolean) =>
+    [...vm.run(new Map<string, boolean | number>([["reset", reset], ["load", load], ["inc", inc]])).entries()];
+
+  // 初期状態: hold → 0
+  expect(run(false, 0, false)).toEqual([["count", 0]]);
+  // inc → 1
+  expect(run(false, 0, true)).toEqual([["count", 1]]);
+  // inc → 2
+  expect(run(false, 0, true)).toEqual([["count", 2]]);
+  // inc → 3
+  expect(run(false, 0, true)).toEqual([["count", 3]]);
+  // hold → 3
+  expect(run(false, 0, false)).toEqual([["count", 3]]);
+  expect(run(false, 0, false)).toEqual([["count", 3]]);
+  // load 100
+  expect(run(false, 100, false)).toEqual([["count", 100]]);
+  // hold → 100
+  expect(run(false, 0, false)).toEqual([["count", 100]]);
+  // inc → 101
+  expect(run(false, 0, true)).toEqual([["count", 101]]);
+  // load takes priority over inc
+  expect(run(false, 42, true)).toEqual([["count", 42]]);
+  // reset takes priority over load
+  expect(run(true, 200, false)).toEqual([["count", 0]]);
+  // reset takes priority over inc
+  expect(run(true, 0, true)).toEqual([["count", 0]]);
+  // inc from 0 → 1
+  expect(run(false, 0, true)).toEqual([["count", 1]]);
+  // load 255
+  expect(run(false, 255, false)).toEqual([["count", 255]]);
+  // inc → overflow → 0
+  expect(run(false, 0, true)).toEqual([["count", 0]]);
+  // inc → 1
+  expect(run(false, 0, true)).toEqual([["count", 1]]);
+  // reset → 0
+  expect(run(true, 0, false)).toEqual([["count", 0]]);
+  // hold → 0
+  expect(run(false, 0, false)).toEqual([["count", 0]]);
+});
+
 test("DECODER_3BIT", () => {
   const runner = getRunner(`
     ${DECODER_3BIT}
