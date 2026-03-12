@@ -11,7 +11,6 @@ import {
   DEC,
   ENC,
   DLATCH,
-  REGISTER,
   MUX,
   DMUX,
 } from "@nandlang-ts/language/code-fragments";
