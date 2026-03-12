@@ -11,6 +11,7 @@ import {
   DEC,
   ENC,
   DLATCH,
+  REGISTER,
   MUX,
   DMUX,
 } from "@nandlang-ts/language/code-fragments";
@@ -961,5 +962,77 @@ WIRE dl7 _ TO qm i7
 `,
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-byte-memory", "mod-bytein", "mod-byteout"],
+  },
+  {
+    id: 22,
+    title: "Lv22: Register",
+    description:
+      "D Latchはenable=1の間ずっと入力が出力に反映される「レベルトリガ」でした。\n" +
+      "しかし実際のCPUでは、クロック信号の立ち上がりの瞬間だけデータを取り込む「エッジトリガ」が必要です。\n\n" +
+      "Register（Dフリップフロップ）はエッジトリガの1ビットメモリです:\n" +
+      "  d（Data）= 記憶したい値\n" +
+      "  clk（Clock）= クロック信号\n" +
+      "  q = 記憶されている値\n\n" +
+      "動作:\n" +
+      "  clkが0→1に変化した瞬間（立ち上がりエッジ）のdの値を記憶\n" +
+      "  clk=1の間にdが変化しても出力は変わらない\n" +
+      "  clk=0の間は出力を保持\n\n" +
+      "ヒント: DLATCHを2つ使う「マスター・スレーブ」構成で実現できます。\n" +
+      "  マスター: d=入力d, e=NOT clk（clk=0で入力を取り込む）\n" +
+      "  スレーブ: d=マスター出力, e=clk（clk=1でマスターの値を出力）\n" +
+      "clkが0→1になると、マスターが値を保持し、スレーブがその値を出力します。",
+    inputNames: ["d", "clk"],
+    outputNames: ["q"],
+    testCases: [
+      // 初期状態: clk=0, d=0 → q=0
+      tc({ d: false, clk: false }, { q: false }),
+      // clk=0のままd=1 → masterが1を取り込むがslaveは保持 → q=0
+      tc({ d: true, clk: false }, { q: false }),
+      // 立ち上がりエッジ: clk=1 → masterが1を保持、slaveが出力 → q=1
+      tc({ d: true, clk: true }, { q: true }),
+      // clk=1のままd=0 → masterは保持中なので変化なし → q=1
+      tc({ d: false, clk: true }, { q: true }),
+      // clk=0 → masterがd=0を取り込む、slaveは保持 → q=1
+      tc({ d: false, clk: false }, { q: true }),
+      // 立ち上がりエッジ: clk=1 → masterが0を保持、slaveが出力 → q=0
+      tc({ d: false, clk: true }, { q: false }),
+      // clk=0, d=1 → masterが1を取り込む、slaveは保持 → q=0
+      tc({ d: true, clk: false }, { q: false }),
+      // 立ち上がりエッジ: clk=1 → q=1
+      tc({ d: true, clk: true }, { q: true }),
+      // clk=0に戻る → q=1保持
+      tc({ d: false, clk: false }, { q: true }),
+      // もう一度立ち上がりエッジ（d=0） → q=0
+      tc({ d: false, clk: true }, { q: false }),
+      // clk=0, d=1 → q=0保持
+      tc({ d: true, clk: false }, { q: false }),
+      tc({ d: true, clk: false }, { q: false }),
+      // 立ち上がりエッジ → q=1
+      tc({ d: true, clk: true }, { q: true }),
+      // clk=1のままd変化 → q=1のまま
+      tc({ d: false, clk: true }, { q: true }),
+      tc({ d: true, clk: true }, { q: true }),
+      // clk=0, d=0 → masterが0を取り込む
+      tc({ d: false, clk: false }, { q: true }),
+      // 立ち上がりエッジ → q=0
+      tc({ d: false, clk: true }, { q: false }),
+      // 保持確認
+      tc({ d: true, clk: false }, { q: false }),
+      tc({ d: false, clk: false }, { q: false }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}`,
+    fixedCode: `VAR d BITIN\nVAR clk BITIN\nVAR q BITOUT`,
+    editableCode: `VAR nclk NOT
+WIRE clk _ TO nclk _
+VAR master DLATCH
+WIRE d _ TO master d
+WIRE nclk _ TO master e
+VAR slave DLATCH
+WIRE master _ TO slave d
+WIRE clk _ TO slave e
+WIRE slave _ TO q _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH"],
+    helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-register"],
   },
 ];

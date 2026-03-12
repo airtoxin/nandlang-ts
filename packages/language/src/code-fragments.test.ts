@@ -13,6 +13,7 @@ import {
   ON,
   OR,
   OR3,
+  REGISTER,
   XNOR,
   XOR,
 } from "./code-fragments";
@@ -915,6 +916,43 @@ test("DLATCH", () => {
   expect([...vm.run(new Map([["d", true], ["e", false]])).entries()]).toEqual([["q", false]]);
   // Write 1 again
   expect([...vm.run(new Map([["d", true], ["e", true]])).entries()]).toEqual([["q", true]]);
+});
+
+test("REGISTER", () => {
+  const vm = new Vm();
+  vm.compile(`
+    ${REGISTER}
+    VAR d BITIN
+    VAR clk BITIN
+    VAR q BITOUT
+
+    VAR reg REGISTER
+    WIRE d _ TO reg d
+    WIRE clk _ TO reg clk
+    WIRE reg _ TO q _
+  `);
+  // Initial: clk=0, d=0 → master captures 0, slave holds initial 0 → q=0
+  expect([...vm.run(new Map([["d", false], ["clk", false]])).entries()]).toEqual([["q", false]]);
+  // clk=0, d=1 → master captures 1, slave holds → q=0
+  expect([...vm.run(new Map([["d", true], ["clk", false]])).entries()]).toEqual([["q", false]]);
+  // Rising edge: clk=1 → master holds 1, slave captures master(1) → q=1
+  expect([...vm.run(new Map([["d", true], ["clk", true]])).entries()]).toEqual([["q", true]]);
+  // clk=1, d changes to 0 → master still holds 1, slave transparent → q=1
+  expect([...vm.run(new Map([["d", false], ["clk", true]])).entries()]).toEqual([["q", true]]);
+  // clk=0 → master captures d=0, slave holds 1 → q=1
+  expect([...vm.run(new Map([["d", false], ["clk", false]])).entries()]).toEqual([["q", true]]);
+  // Rising edge: clk=1 → master holds 0, slave captures master(0) → q=0
+  expect([...vm.run(new Map([["d", false], ["clk", true]])).entries()]).toEqual([["q", false]]);
+  // Hold at 0: clk=0, d=1 → master captures 1, slave holds 0 → q=0
+  expect([...vm.run(new Map([["d", true], ["clk", false]])).entries()]).toEqual([["q", false]]);
+  // Rising edge: clk=1 → master holds 1, slave captures master(1) → q=1
+  expect([...vm.run(new Map([["d", true], ["clk", true]])).entries()]).toEqual([["q", true]]);
+  // clk=0, d=0 → master captures 0, slave holds 1 → q=1
+  expect([...vm.run(new Map([["d", false], ["clk", false]])).entries()]).toEqual([["q", true]]);
+  // Rising edge with d=0: clk=1 → master holds 0, slave captures → q=0
+  expect([...vm.run(new Map([["d", false], ["clk", true]])).entries()]).toEqual([["q", false]]);
+  // Hold: clk=0 → q=0
+  expect([...vm.run(new Map([["d", false], ["clk", false]])).entries()]).toEqual([["q", false]]);
 });
 
 test("DECODER_3BIT", () => {
