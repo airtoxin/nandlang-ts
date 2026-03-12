@@ -1127,4 +1127,71 @@ WIRE r7 _ TO qm i7
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-register", "circuit-byte-register", "mod-bytein", "mod-byteout"],
   },
+  {
+    id: 24,
+    title: "Lv24: Counter",
+    description:
+      "COUNTERは8ビットのカウンタモジュールです。FLIPFLOPと同様にVM組み込みの特別なモジュールで、" +
+      "内部に状態を持ちます。\n\n" +
+      "入力:\n" +
+      "  reset（BIT）= 1でカウンタを0にリセット\n" +
+      "  load（BYTE）= 非ゼロの値を入れるとその値をロード\n" +
+      "  inc（BIT）= 1でカウンタを+1\n\n" +
+      "出力:\n" +
+      "  count（BYTE）= 現在のカウンタ値\n\n" +
+      "優先度: reset > load > inc > 保持\n" +
+      "（resetが最優先、次にload、次にinc、どれもなければ値を保持）\n\n" +
+      "COUNTERモジュールを1つ配置して、入力と出力を正しく結線してください。",
+    inputNames: ["reset", "load", "inc"],
+    outputNames: ["count"],
+    testCases: [
+      // 初期状態: hold → 0
+      tc({ reset: false, load: 0, inc: false }, { count: 0 }),
+      // 0からカウントアップ → 1, 2, 3, 4, 5, 6, 7, 8
+      tc({ reset: false, load: 0, inc: true }, { count: 1 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 2 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 3 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 4 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 5 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 6 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 7 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 8 }),
+      // hold → 8
+      tc({ reset: false, load: 0, inc: false }, { count: 8 }),
+      // さらにカウントアップ → 9, 10
+      tc({ reset: false, load: 0, inc: true }, { count: 9 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 10 }),
+      // reset → 0
+      tc({ reset: true, load: 0, inc: false }, { count: 0 }),
+      // load 250してからカウントアップ → オーバーフロー
+      tc({ reset: false, load: 250, inc: false }, { count: 250 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 251 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 252 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 253 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 254 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 255 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 0 }),
+      // オーバーフロー後もカウントアップ
+      tc({ reset: false, load: 0, inc: true }, { count: 1 }),
+      tc({ reset: false, load: 0, inc: true }, { count: 2 }),
+      // 優先度確認: load > inc
+      tc({ reset: false, load: 42, inc: true }, { count: 42 }),
+      // 優先度確認: reset > load
+      tc({ reset: true, load: 200, inc: false }, { count: 0 }),
+      // 優先度確認: reset > inc
+      tc({ reset: true, load: 0, inc: true }, { count: 0 }),
+      // hold
+      tc({ reset: false, load: 0, inc: false }, { count: 0 }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}${REG}`,
+    fixedCode: `VAR reset BITIN\nVAR load BYTEIN\nVAR inc BITIN\nVAR count BYTEOUT`,
+    editableCode: `VAR ctr COUNTER
+WIRE reset _ TO ctr reset
+WIRE load _ TO ctr load
+WIRE inc _ TO ctr inc
+WIRE ctr count TO count _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "COUNTER", "BYTESPLIT", "BYTEMERGE"],
+    helpSections: ["mod-counter", "mod-bytein", "mod-byteout"],
+  },
 ];

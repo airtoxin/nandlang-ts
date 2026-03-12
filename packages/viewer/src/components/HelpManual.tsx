@@ -827,6 +827,43 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "mod-counter",
+    category: "module",
+    title: "COUNTER: 8ビットカウンタ",
+    content: (
+      <>
+        <p>
+          8ビットのカウンタモジュールです。FLIPFLOPと同様にVM組み込みの特別なモジュールで、
+          内部に状態を持ちます。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>型</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>reset</code></td><td>入力</td><td>BIT</td><td>1で0にリセット</td></tr>
+            <tr><td><code>load</code></td><td>入力</td><td>BYTE</td><td>非ゼロの値でロード</td></tr>
+            <tr><td><code>inc</code></td><td>入力</td><td>BIT</td><td>1でカウンタ+1</td></tr>
+            <tr><td><code>count</code></td><td>出力</td><td>BYTE</td><td>現在のカウンタ値</td></tr>
+          </tbody>
+        </table>
+        <p>優先度: reset &gt; load &gt; inc &gt; 保持</p>
+        <table>
+          <thead>
+            <tr><th>reset</th><th>load</th><th>inc</th><th>動作</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>x</td><td>x</td><td>0にリセット</td></tr>
+            <tr><td>0</td><td>非0</td><td>x</td><td>load値をロード</td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td>count + 1</td></tr>
+            <tr><td>0</td><td>0</td><td>0</td><td>保持</td></tr>
+          </tbody>
+        </table>
+        <p>255の次は0にオーバーフローします。</p>
+      </>
+    ),
+  },
+  {
     id: "circuit-byte-memory",
     category: "module",
     title: "Byte Memory: バイトメモリ",
