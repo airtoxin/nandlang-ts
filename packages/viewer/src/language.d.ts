@@ -3,6 +3,7 @@ declare module "@nandlang-ts/language/vm" {
     compile(programString: string): void;
     run(inputSignals: Map<string, boolean | number>): Map<string, boolean | number>;
     getAllSignals(): Map<string, boolean>;
+    getMemoryDumps(): Map<string, Uint8Array>;
   }
 }
 

@@ -13,6 +13,7 @@ type OnTestRun = (
   inputs: Map<string, boolean | number>,
   outputs: Map<string, boolean | number>,
   allSignals: Map<string, boolean>,
+  memoryDumps: Map<string, Uint8Array>,
 ) => void;
 
 export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
@@ -84,7 +85,7 @@ export function useTestCases(code: string | null, onTestRun?: OnTestRun) {
       return result;
     });
 
-    onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals());
+    onTestRunRef.current?.(tc.inputs, actualOutputs, vm.getAllSignals(), vm.getMemoryDumps());
 
     if (pass && idx + 1 < testCasesRef.current.length) {
       indexRef.current = idx + 1;

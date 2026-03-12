@@ -1,5 +1,5 @@
 import { Program as ProgramAst } from "../parser/ast";
-import { BitinModule, BitoutModule, ByteinModule, BytemergeModule, ByteoutModule, BytesplitModule, CounterModule, createModule, FlipflopModule, NandModule } from "./module";
+import { BitinModule, BitoutModule, ByteinModule, BytemergeModule, ByteoutModule, BytesplitModule, CounterModule, createModule, FlipflopModule, NandModule, RamModule } from "./module";
 import { Variable } from "./variable";
 
 export class Program {
@@ -12,7 +12,7 @@ export class Program {
         name: "Program",
         definitionStatements: this.programAst.statements,
       },
-      [new NandModule(), new BitinModule(), new BitoutModule(), new ByteinModule(), new ByteoutModule(), new BytesplitModule(), new BytemergeModule(), new FlipflopModule(), new CounterModule()],
+      [new NandModule(), new BitinModule(), new BitoutModule(), new ByteinModule(), new ByteoutModule(), new BytesplitModule(), new BytemergeModule(), new FlipflopModule(), new CounterModule(), new RamModule(1), new RamModule(2), new RamModule(3), new RamModule(4)],
     );
     this.variable = new ProgramModule().createVariable("PROGRAM");
   }
@@ -57,5 +57,15 @@ export class Program {
       }
     }
     return signals;
+  }
+
+  public getMemoryDumps(): Map<string, Uint8Array> {
+    const dumps = new Map<string, Uint8Array>();
+    for (const child of this.variable.children) {
+      if (child.getMemoryDump) {
+        dumps.set(child.name, child.getMemoryDump());
+      }
+    }
+    return dumps;
   }
 }

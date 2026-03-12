@@ -23,4 +23,9 @@ export class Vm {
     if (this.program == null) throw new Error(`No program compiled`);
     return this.program.getAllSignals();
   }
+
+  public getMemoryDumps(): Map<string, Uint8Array> {
+    if (this.program == null) throw new Error(`No program compiled`);
+    return this.program.getMemoryDumps();
+  }
 }
