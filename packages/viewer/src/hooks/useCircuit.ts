@@ -65,7 +65,7 @@ export function useCircuit() {
         if (node.data.moduleName.startsWith("RAM")) {
           const dump = memoryDumps.get(node.id);
           if (dump) {
-            return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
+            return { ...node, data: { ...node.data, memoryDump: Array.from(dump) as number[] } };
           }
         }
         return node;
@@ -119,7 +119,7 @@ export function useCircuit() {
                 if (node.data.moduleName.startsWith("RAM")) {
                   const dump = memoryDumps.get(node.id);
                   if (dump) {
-                    return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
+                    return { ...node, data: { ...node.data, memoryDump: Array.from(dump) as number[] } };
                   }
                 }
                 return node;
@@ -178,7 +178,7 @@ export function useCircuit() {
           if (node.data.moduleName.startsWith("RAM") && memoryDumps) {
             const dump = memoryDumps.get(node.id);
             if (dump) {
-              return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
+              return { ...node, data: { ...node.data, memoryDump: Array.from(dump) as number[] } };
             }
           }
           return node;
