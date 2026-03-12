@@ -352,8 +352,8 @@ MOD START DLATCH
 MOD END
 `;
 
-export const REGISTER = `\
-MOD START REGISTER
+export const REG = `\
+MOD START REG
   ${DLATCH}
   ${NOT}
   VAR d BITIN
@@ -368,6 +368,51 @@ MOD START REGISTER
   WIRE clk _ TO slave e
   VAR q BITOUT
   WIRE slave _ TO q _
+MOD END
+`;
+
+export const BYTEREG = `\
+MOD START BYTEREG
+  ${REG}
+  VAR d BYTEIN
+  VAR clk BITIN
+  VAR ds BYTESPLIT
+  WIRE d _ TO ds _
+  VAR r0 REG
+  WIRE ds o0 TO r0 d
+  WIRE clk _ TO r0 clk
+  VAR r1 REG
+  WIRE ds o1 TO r1 d
+  WIRE clk _ TO r1 clk
+  VAR r2 REG
+  WIRE ds o2 TO r2 d
+  WIRE clk _ TO r2 clk
+  VAR r3 REG
+  WIRE ds o3 TO r3 d
+  WIRE clk _ TO r3 clk
+  VAR r4 REG
+  WIRE ds o4 TO r4 d
+  WIRE clk _ TO r4 clk
+  VAR r5 REG
+  WIRE ds o5 TO r5 d
+  WIRE clk _ TO r5 clk
+  VAR r6 REG
+  WIRE ds o6 TO r6 d
+  WIRE clk _ TO r6 clk
+  VAR r7 REG
+  WIRE ds o7 TO r7 d
+  WIRE clk _ TO r7 clk
+  VAR qm BYTEMERGE
+  WIRE r0 _ TO qm i0
+  WIRE r1 _ TO qm i1
+  WIRE r2 _ TO qm i2
+  WIRE r3 _ TO qm i3
+  WIRE r4 _ TO qm i4
+  WIRE r5 _ TO qm i5
+  WIRE r6 _ TO qm i6
+  WIRE r7 _ TO qm i7
+  VAR q BYTEOUT
+  WIRE qm _ TO q _
 MOD END
 `;
 

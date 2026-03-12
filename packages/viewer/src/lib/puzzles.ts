@@ -11,6 +11,7 @@ import {
   DEC,
   ENC,
   DLATCH,
+  REG,
   MUX,
   DMUX,
 } from "@nandlang-ts/language/code-fragments";
@@ -1033,5 +1034,97 @@ WIRE slave _ TO q _
 `,
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH"],
     helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-register"],
+  },
+  {
+    id: 23,
+    title: "Lv23: Byte Register",
+    description:
+      "Lv21のByte MemoryではDLATCH（レベルトリガ）を8個使いましたが、" +
+      "今回はREG（エッジトリガ）を8個使って8ビットレジスタを作ります。\n\n" +
+      "入力:\n" +
+      "  d（BYTEIN）= 記憶したい8ビットの値\n" +
+      "  clk（BITIN）= クロック信号\n\n" +
+      "出力:\n" +
+      "  q（BYTEOUT）= 記憶されている8ビットの値\n\n" +
+      "clkが0→1に変化した瞬間のdの値を記憶します。" +
+      "clk=1の間にdが変化しても出力は変わりません。\n\n" +
+      "BYTESPLITでバイト信号を8本のビット線に分解し、REGを8個使って各ビットを記憶し、" +
+      "BYTEMERGEで8本のビット線をバイト信号に戻します。\n" +
+      "REGのポート: d（データ入力）、clk（クロック）、q（出力）",
+    inputNames: ["d", "clk"],
+    outputNames: ["q"],
+    testCases: [
+      // 初期状態: clk=0 → q=0
+      tc({ d: 0, clk: false }, { q: 0 }),
+      // d=42でもclk=0なら書き込まない
+      tc({ d: 42, clk: false }, { q: 0 }),
+      // 立ち上がりエッジ → q=42
+      tc({ d: 42, clk: true }, { q: 42 }),
+      // clk=1のままd変化 → q=42のまま
+      tc({ d: 100, clk: true }, { q: 42 }),
+      tc({ d: 0, clk: true }, { q: 42 }),
+      // clk=0 → masterがd=0を取り込む、q=42保持
+      tc({ d: 0, clk: false }, { q: 42 }),
+      // 立ち上がりエッジ → q=0
+      tc({ d: 0, clk: true }, { q: 0 }),
+      // clk=0, d=255
+      tc({ d: 255, clk: false }, { q: 0 }),
+      // 立ち上がりエッジ → q=255
+      tc({ d: 255, clk: true }, { q: 255 }),
+      // clk=0, d=170 (10101010)
+      tc({ d: 170, clk: false }, { q: 255 }),
+      // 立ち上がりエッジ → q=170
+      tc({ d: 170, clk: true }, { q: 170 }),
+      // clk=0, d=85 (01010101)
+      tc({ d: 85, clk: false }, { q: 170 }),
+      // 立ち上がりエッジ → q=85
+      tc({ d: 85, clk: true }, { q: 85 }),
+      // clk=1のままd変化 → q=85のまま
+      tc({ d: 128, clk: true }, { q: 85 }),
+      // clk=0, d=128
+      tc({ d: 128, clk: false }, { q: 85 }),
+      // 立ち上がりエッジ → q=128
+      tc({ d: 128, clk: true }, { q: 128 }),
+      // 保持確認
+      tc({ d: 0, clk: false }, { q: 128 }),
+      tc({ d: 255, clk: false }, { q: 128 }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}${REG}`,
+    fixedCode: `VAR d BYTEIN\nVAR clk BITIN\nVAR q BYTEOUT\nVAR ds BYTESPLIT\nWIRE d _ TO ds _\nVAR qm BYTEMERGE\nWIRE qm _ TO q _`,
+    editableCode: `VAR r0 REG
+WIRE ds o0 TO r0 d
+WIRE clk _ TO r0 clk
+WIRE r0 _ TO qm i0
+VAR r1 REG
+WIRE ds o1 TO r1 d
+WIRE clk _ TO r1 clk
+WIRE r1 _ TO qm i1
+VAR r2 REG
+WIRE ds o2 TO r2 d
+WIRE clk _ TO r2 clk
+WIRE r2 _ TO qm i2
+VAR r3 REG
+WIRE ds o3 TO r3 d
+WIRE clk _ TO r3 clk
+WIRE r3 _ TO qm i3
+VAR r4 REG
+WIRE ds o4 TO r4 d
+WIRE clk _ TO r4 clk
+WIRE r4 _ TO qm i4
+VAR r5 REG
+WIRE ds o5 TO r5 d
+WIRE clk _ TO r5 clk
+WIRE r5 _ TO qm i5
+VAR r6 REG
+WIRE ds o6 TO r6 d
+WIRE clk _ TO r6 clk
+WIRE r6 _ TO qm i6
+VAR r7 REG
+WIRE ds o7 TO r7 d
+WIRE clk _ TO r7 clk
+WIRE r7 _ TO qm i7
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "BYTESPLIT", "BYTEMERGE"],
+    helpSections: ["mod-flipflop", "circuit-d-latch", "circuit-register", "circuit-byte-register", "mod-bytein", "mod-byteout"],
   },
 ];

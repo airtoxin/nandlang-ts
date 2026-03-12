@@ -4,6 +4,7 @@ import {
   AND,
   AND3,
   BYTEADD,
+  BYTEREG,
   DEC,
   DECODER_3BIT,
   DLATCH,
@@ -13,7 +14,7 @@ import {
   ON,
   OR,
   OR3,
-  REGISTER,
+  REG,
   XNOR,
   XOR,
 } from "./code-fragments";
@@ -918,15 +919,15 @@ test("DLATCH", () => {
   expect([...vm.run(new Map([["d", true], ["e", true]])).entries()]).toEqual([["q", true]]);
 });
 
-test("REGISTER", () => {
+test("REG", () => {
   const vm = new Vm();
   vm.compile(`
-    ${REGISTER}
+    ${REG}
     VAR d BITIN
     VAR clk BITIN
     VAR q BITOUT
 
-    VAR reg REGISTER
+    VAR reg REG
     WIRE d _ TO reg d
     WIRE clk _ TO reg clk
     WIRE reg _ TO q _
@@ -953,6 +954,41 @@ test("REGISTER", () => {
   expect([...vm.run(new Map([["d", false], ["clk", true]])).entries()]).toEqual([["q", false]]);
   // Hold: clk=0 → q=0
   expect([...vm.run(new Map([["d", false], ["clk", false]])).entries()]).toEqual([["q", false]]);
+});
+
+test("BYTEREG", () => {
+  const vm = new Vm();
+  vm.compile(`
+    ${BYTEREG}
+    VAR d BYTEIN
+    VAR clk BITIN
+    VAR q BYTEOUT
+
+    VAR reg BYTEREG
+    WIRE d _ TO reg d
+    WIRE clk _ TO reg clk
+    WIRE reg q TO q _
+  `);
+  // Initial: clk=0 → q=0
+  expect([...vm.run(new Map<string, boolean | number>([["d", 0], ["clk", false]])).entries()]).toEqual([["q", 0]]);
+  // clk=0, d=42 → master captures, slave holds → q=0
+  expect([...vm.run(new Map<string, boolean | number>([["d", 42], ["clk", false]])).entries()]).toEqual([["q", 0]]);
+  // Rising edge: clk=1 → q=42
+  expect([...vm.run(new Map<string, boolean | number>([["d", 42], ["clk", true]])).entries()]).toEqual([["q", 42]]);
+  // clk=1, d changes → q stays 42
+  expect([...vm.run(new Map<string, boolean | number>([["d", 100], ["clk", true]])).entries()]).toEqual([["q", 42]]);
+  // clk=0 → master captures d=100, slave holds → q=42
+  expect([...vm.run(new Map<string, boolean | number>([["d", 100], ["clk", false]])).entries()]).toEqual([["q", 42]]);
+  // Rising edge → q=100
+  expect([...vm.run(new Map<string, boolean | number>([["d", 100], ["clk", true]])).entries()]).toEqual([["q", 100]]);
+  // clk=0, d=255 → q=100
+  expect([...vm.run(new Map<string, boolean | number>([["d", 255], ["clk", false]])).entries()]).toEqual([["q", 100]]);
+  // Rising edge → q=255
+  expect([...vm.run(new Map<string, boolean | number>([["d", 255], ["clk", true]])).entries()]).toEqual([["q", 255]]);
+  // clk=0, d=0 → q=255
+  expect([...vm.run(new Map<string, boolean | number>([["d", 0], ["clk", false]])).entries()]).toEqual([["q", 255]]);
+  // Rising edge → q=0
+  expect([...vm.run(new Map<string, boolean | number>([["d", 0], ["clk", true]])).entries()]).toEqual([["q", 0]]);
 });
 
 test("DECODER_3BIT", () => {
