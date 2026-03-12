@@ -759,6 +759,42 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "circuit-register",
+    category: "circuit",
+    title: "Register: Dフリップフロップ（エッジトリガ）",
+    content: (
+      <>
+        <p>
+          D Latchが「レベルトリガ」（enable=1の間ずっと透過）であるのに対し、
+          Registerは「エッジトリガ」（クロックの立ち上がりの瞬間だけデータを取り込む）です。
+        </p>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>d</code></td><td>入力</td><td>記憶したい値</td></tr>
+            <tr><td><code>clk</code></td><td>入力</td><td>クロック信号</td></tr>
+            <tr><td><code>q</code> / <code>_</code></td><td>出力</td><td>記憶されている値</td></tr>
+          </tbody>
+        </table>
+        <p>マスター・スレーブ構成:</p>
+        <ul>
+          <li>マスターDLATCH: d=入力, e=NOT clk（clk=0で取り込み）</li>
+          <li>スレーブDLATCH: d=マスター出力, e=clk（clk=1で出力）</li>
+        </ul>
+        <details>
+          <summary>ヒント</summary>
+          <p>
+            NOTでclkを反転してマスターのeに接続し、
+            clkをそのままスレーブのeに接続します。
+            マスターの出力をスレーブの入力dに繋げば完成です。
+          </p>
+        </details>
+      </>
+    ),
+  },
+  {
     id: "circuit-byte-memory",
     category: "module",
     title: "Byte Memory: バイトメモリ",

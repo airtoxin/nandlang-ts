@@ -352,6 +352,25 @@ MOD START DLATCH
 MOD END
 `;
 
+export const REGISTER = `\
+MOD START REGISTER
+  ${DLATCH}
+  ${NOT}
+  VAR d BITIN
+  VAR clk BITIN
+  VAR nclk NOT
+  WIRE clk _ TO nclk _
+  VAR master DLATCH
+  WIRE d _ TO master d
+  WIRE nclk _ TO master e
+  VAR slave DLATCH
+  WIRE master _ TO slave d
+  WIRE clk _ TO slave e
+  VAR q BITOUT
+  WIRE slave _ TO q _
+MOD END
+`;
+
 export const DECODER_3BIT = `\
 MOD START DECODER_3BIT
   ${NOT}
