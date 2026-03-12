@@ -864,6 +864,47 @@ VAR x NOT`}</pre>
     ),
   },
   {
+    id: "mod-ram",
+    category: "module",
+    title: "RAM: ランダムアクセスメモリ",
+    content: (
+      <>
+        <p>
+          アドレス指定で読み書きできるメモリモジュールです。
+          アドレスビット数の異なる4種類（RAM2/4/8/16）があります。
+          FLIPFLOPやCOUNTERと同様にVM組み込みの特別なモジュールです。
+        </p>
+        <table>
+          <thead>
+            <tr><th>モジュール</th><th>アドレスビット</th><th>アドレス数</th><th>データ幅</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>RAM2</td><td>1 (a0)</td><td>2</td><td>8bit</td></tr>
+            <tr><td>RAM4</td><td>2 (a0,a1)</td><td>4</td><td>8bit</td></tr>
+            <tr><td>RAM8</td><td>3 (a0,a1,a2)</td><td>8</td><td>8bit</td></tr>
+            <tr><td>RAM16</td><td>4 (a0,a1,a2,a3)</td><td>16</td><td>8bit</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead>
+            <tr><th>ポート</th><th>方向</th><th>型</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>a0</code>〜<code>aN</code></td><td>入力</td><td>BIT</td><td>アドレスビット</td></tr>
+            <tr><td><code>we</code></td><td>入力</td><td>BIT</td><td>Write Enable（1で書き込み）</td></tr>
+            <tr><td><code>data</code></td><td>入力</td><td>BYTE</td><td>書き込みデータ</td></tr>
+            <tr><td><code>out</code></td><td>出力</td><td>BYTE</td><td>読み出しデータ</td></tr>
+          </tbody>
+        </table>
+        <p>
+          動作: <code>we=1</code> のとき <code>data</code> の値を指定アドレスに書き込みます。
+          出力 <code>out</code> は常に指定アドレスの現在の値です。
+          初期値はすべて0です。
+        </p>
+      </>
+    ),
+  },
+  {
     id: "circuit-byte-memory",
     category: "module",
     title: "Byte Memory: バイトメモリ",

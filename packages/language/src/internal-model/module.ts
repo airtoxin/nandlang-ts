@@ -194,6 +194,76 @@ export class CounterModule implements Module {
   }
 }
 
+export class RamModule implements Module {
+  public readonly name: string;
+  private readonly addressBits: number;
+
+  constructor(addressBits: number) {
+    this.addressBits = addressBits;
+    this.name = "RAM" + (1 << addressBits);
+  }
+
+  public createVariable(varName: string): Variable {
+    const addrPorts: Reactive<boolean>[] = [];
+    for (let i = 0; i < this.addressBits; i++) {
+      addrPorts.push(reactive(false));
+    }
+    const we = reactive(false);
+
+    const dataBits: Reactive<boolean>[] = [];
+    for (let i = 0; i < 8; i++) {
+      dataBits.push(reactive(false));
+    }
+
+    const outBits: Reactive<boolean>[] = [];
+    for (let i = 0; i < 8; i++) {
+      outBits.push(reactive(false));
+    }
+
+    const memory = new Uint8Array(1 << this.addressBits);
+
+    const inPorts = new Map<string, Reactive<boolean>>();
+    for (let i = 0; i < this.addressBits; i++) {
+      inPorts.set(`a${i}`, addrPorts[i]);
+    }
+    inPorts.set("we", we);
+
+    const variable = new Variable(
+      varName,
+      inPorts,
+      new Map(),
+      [],
+      new Map([["data", dataBits]]),
+      new Map([["out", outBits]]),
+    );
+
+    variable.onBeforeRead = () => {
+      let addr = 0;
+      for (let i = 0; i < this.addressBits; i++) {
+        if (addrPorts[i].value) addr |= (1 << i);
+      }
+
+      if (we.value) {
+        let dataVal = 0;
+        for (let j = 0; j < 8; j++) {
+          if (dataBits[j].value) dataVal |= (1 << j);
+        }
+        memory[addr] = dataVal;
+      }
+
+      const val = memory[addr];
+      for (let i = 0; i < 8; i++) {
+        const bit = ((val >> i) & 1) === 1;
+        outBits[i].set(() => bit);
+      }
+    };
+
+    variable.getMemoryDump = () => new Uint8Array(memory);
+
+    return variable;
+  }
+}
+
 export const createModule = (
   moduleStatement: Extract<SubStatement, { type: "moduleStatement" }>,
   availableModules: Module[],

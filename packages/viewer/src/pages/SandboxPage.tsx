@@ -16,15 +16,23 @@ const PRELOADED_MODULES = `${ON}${NOT}${AND}${AND3}${OR}${OR3}${NOR}${XOR}${XNOR
 const AVAILABLE_MODULE_NAMES = [
   "ON", "NOT", "AND", "AND3", "OR", "OR3", "NOR", "XOR", "XNOR",
   "ADD", "DEC", "ENC", "BYTEADD", "DLATCH", "MUX", "DMUX",
+  "RAM2", "RAM4", "RAM8", "RAM16",
 ];
 
-const DEFAULT_CODE = `VAR a BITIN
-VAR b BITIN
-VAR out BITOUT
-VAR nand NAND
-WIRE a _ TO nand i0
-WIRE b _ TO nand i1
-WIRE nand _ TO out _
+const DEFAULT_CODE = `# RAM4 を使った簡易メモリ回路
+# a0,a1でアドレス指定、weで書き込み、dataで値を入力
+VAR a0 BITIN
+VAR a1 BITIN
+VAR we BITIN
+VAR data BYTEIN
+VAR out BYTEOUT
+
+VAR ram RAM4
+WIRE a0 _ TO ram a0
+WIRE a1 _ TO ram a1
+WIRE we _ TO ram we
+WIRE data _ TO ram data
+WIRE ram out TO out _
 `;
 
 export function SandboxPage() {

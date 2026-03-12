@@ -3,6 +3,7 @@ import { Module } from "./module";
 
 export class Variable {
   public onBeforeRead?: () => void;
+  public getMemoryDump?: () => Uint8Array;
 
   constructor(
     public readonly name: string,

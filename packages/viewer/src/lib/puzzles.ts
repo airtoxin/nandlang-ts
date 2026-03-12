@@ -1194,4 +1194,160 @@ WIRE ctr count TO count _
     availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "COUNTER", "BYTESPLIT", "BYTEMERGE"],
     helpSections: ["mod-counter", "mod-bytein", "mod-byteout"],
   },
+  {
+    id: 25,
+    title: "Lv25: RAM2",
+    description:
+      "RAM2は2アドレス（アドレスビット1本）の8ビットメモリです。\n\n" +
+      "入力:\n" +
+      "  a0（BIT）= アドレス（0または1）\n" +
+      "  we（BIT）= Write Enable（1で書き込み）\n" +
+      "  data（BYTE）= 書き込みデータ\n\n" +
+      "出力:\n" +
+      "  out（BYTE）= 指定アドレスの現在の値\n\n" +
+      "we=1のとき、dataの値がmemory[a0]に書き込まれます。\n" +
+      "outは常にmemory[a0]の値を出力します。初期値はすべて0です。\n\n" +
+      "RAM2モジュールを配置して、入力と出力を正しく結線してください。",
+    inputNames: ["a0", "we", "data"],
+    outputNames: ["out"],
+    testCases: [
+      // 初期状態: 両アドレスとも0
+      tc({ a0: false, we: false, data: 0 }, { out: 0 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 0 }),
+      // we=0 では書き込まない
+      tc({ a0: false, we: false, data: 123 }, { out: 0 }),
+      tc({ a0: true, we: false, data: 200 }, { out: 0 }),
+      // Write 42 to addr0
+      tc({ a0: false, we: true, data: 42 }, { out: 42 }),
+      // Read addr0 → 42, addr1 → 0
+      tc({ a0: false, we: false, data: 0 }, { out: 42 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 0 }),
+      // Write 99 to addr1
+      tc({ a0: true, we: true, data: 99 }, { out: 99 }),
+      // 両方読み出し確認
+      tc({ a0: false, we: false, data: 0 }, { out: 42 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 99 }),
+      // 上書き: addr0 を 255 に
+      tc({ a0: false, we: true, data: 255 }, { out: 255 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 99 }),  // addr1 不変
+      // 上書き: addr1 を 170 (10101010) に
+      tc({ a0: true, we: true, data: 170 }, { out: 170 }),
+      tc({ a0: false, we: false, data: 0 }, { out: 255 }),  // addr0 不変
+      // 連続書き込み
+      tc({ a0: false, we: true, data: 1 }, { out: 1 }),
+      tc({ a0: true, we: true, data: 2 }, { out: 2 }),
+      tc({ a0: false, we: true, data: 3 }, { out: 3 }),
+      tc({ a0: true, we: true, data: 4 }, { out: 4 }),
+      // 読み出し確認（最後の値が残る）
+      tc({ a0: false, we: false, data: 0 }, { out: 3 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 4 }),
+      // 0 を書き込み
+      tc({ a0: false, we: true, data: 0 }, { out: 0 }),
+      tc({ a0: true, we: true, data: 0 }, { out: 0 }),
+      // 全クリア確認
+      tc({ a0: false, we: false, data: 0 }, { out: 0 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 0 }),
+      // ビットパターン確認
+      tc({ a0: false, we: true, data: 85 }, { out: 85 }),   // 01010101
+      tc({ a0: true, we: true, data: 170 }, { out: 170 }),  // 10101010
+      tc({ a0: false, we: false, data: 0 }, { out: 85 }),
+      tc({ a0: true, we: false, data: 0 }, { out: 170 }),
+    ],
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}${REG}`,
+    fixedCode: `VAR a0 BITIN\nVAR we BITIN\nVAR data BYTEIN\nVAR out BYTEOUT`,
+    editableCode: `VAR ram RAM2
+WIRE a0 _ TO ram a0
+WIRE we _ TO ram we
+WIRE data _ TO ram data
+WIRE ram out TO out _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "COUNTER", "RAM2", "BYTESPLIT", "BYTEMERGE"],
+    helpSections: ["mod-ram", "mod-bytein", "mod-byteout"],
+  },
+  {
+    id: 26,
+    title: "Lv26: RAM16",
+    description:
+      "RAM16は16アドレス（アドレスビット4本）の8ビットメモリです。\n\n" +
+      "入力:\n" +
+      "  a0〜a3（BIT）= アドレス（0〜15）\n" +
+      "  we（BIT）= Write Enable（1で書き込み）\n" +
+      "  data（BYTE）= 書き込みデータ\n\n" +
+      "出力:\n" +
+      "  out（BYTE）= 指定アドレスの現在の値\n\n" +
+      "RAM2と同じ動作ですが、アドレス空間が16に拡大されています。\n" +
+      "複数のアドレスに書き込み、正しく読み出せることを確認しましょう。",
+    inputNames: ["a0", "a1", "a2", "a3", "we", "data"],
+    outputNames: ["out"],
+    testCases: (() => {
+      const a = (addr: number, we: boolean, data: number) => ({
+        a0: (addr & 1) === 1, a1: (addr & 2) === 2,
+        a2: (addr & 4) === 4, a3: (addr & 8) === 8,
+        we, data,
+      });
+      return [
+        // 初期状態: 未書き込みアドレスは0
+        tc(a(0, false, 0), { out: 0 }),
+        tc(a(7, false, 0), { out: 0 }),
+        tc(a(15, false, 0), { out: 0 }),
+        // 全16アドレスに書き込み (addr * 16 + 1)
+        tc(a(0, true, 1), { out: 1 }),
+        tc(a(1, true, 17), { out: 17 }),
+        tc(a(2, true, 33), { out: 33 }),
+        tc(a(3, true, 49), { out: 49 }),
+        tc(a(4, true, 65), { out: 65 }),
+        tc(a(5, true, 81), { out: 81 }),
+        tc(a(6, true, 97), { out: 97 }),
+        tc(a(7, true, 113), { out: 113 }),
+        tc(a(8, true, 129), { out: 129 }),
+        tc(a(9, true, 145), { out: 145 }),
+        tc(a(10, true, 161), { out: 161 }),
+        tc(a(11, true, 177), { out: 177 }),
+        tc(a(12, true, 193), { out: 193 }),
+        tc(a(13, true, 209), { out: 209 }),
+        tc(a(14, true, 225), { out: 225 }),
+        tc(a(15, true, 241), { out: 241 }),
+        // 全アドレス読み出し確認（逆順）
+        tc(a(15, false, 0), { out: 241 }),
+        tc(a(14, false, 0), { out: 225 }),
+        tc(a(13, false, 0), { out: 209 }),
+        tc(a(12, false, 0), { out: 193 }),
+        tc(a(11, false, 0), { out: 177 }),
+        tc(a(10, false, 0), { out: 161 }),
+        tc(a(9, false, 0), { out: 145 }),
+        tc(a(8, false, 0), { out: 129 }),
+        tc(a(7, false, 0), { out: 113 }),
+        tc(a(6, false, 0), { out: 97 }),
+        tc(a(5, false, 0), { out: 81 }),
+        tc(a(4, false, 0), { out: 65 }),
+        tc(a(3, false, 0), { out: 49 }),
+        tc(a(2, false, 0), { out: 33 }),
+        tc(a(1, false, 0), { out: 17 }),
+        tc(a(0, false, 0), { out: 1 }),
+        // we=0 では書き込まれない
+        tc(a(0, false, 200), { out: 1 }),
+        tc(a(15, false, 200), { out: 241 }),
+        // 上書きテスト
+        tc(a(3, true, 255), { out: 255 }),
+        tc(a(3, false, 0), { out: 255 }),
+        tc(a(4, false, 0), { out: 65 }),   // 隣は変わらない
+        tc(a(12, true, 0), { out: 0 }),
+        tc(a(12, false, 0), { out: 0 }),
+        tc(a(11, false, 0), { out: 177 }), // 隣は変わらない
+      ];
+    })(),
+    moduleDefs: `${NOT}${AND}${OR}${NOR}${XOR}${XNOR}${AND3}${OR3}${MUX}${DMUX}${ADD}${DEC}${ENC}${DLATCH}${REG}`,
+    fixedCode: `VAR a0 BITIN\nVAR a1 BITIN\nVAR a2 BITIN\nVAR a3 BITIN\nVAR we BITIN\nVAR data BYTEIN\nVAR out BYTEOUT`,
+    editableCode: `VAR ram RAM16
+WIRE a0 _ TO ram a0
+WIRE a1 _ TO ram a1
+WIRE a2 _ TO ram a2
+WIRE a3 _ TO ram a3
+WIRE we _ TO ram we
+WIRE data _ TO ram data
+WIRE ram out TO out _
+`,
+    availableModules: ["NAND", "NOT", "AND", "OR", "NOR", "XOR", "XNOR", "AND3", "OR3", "MUX", "DMUX", "ADD", "DEC", "ENC", "FLIPFLOP", "DLATCH", "REG", "COUNTER", "RAM2", "RAM4", "RAM8", "RAM16", "BYTESPLIT", "BYTEMERGE"],
+    helpSections: ["mod-ram", "mod-bytein", "mod-byteout"],
+  },
 ];

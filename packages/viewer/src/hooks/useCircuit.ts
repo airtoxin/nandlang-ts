@@ -46,6 +46,7 @@ export function useCircuit() {
 
       const outputs = vm.run(initialInputs);
       setOutputSignals(outputs);
+      const memoryDumps = vm.getMemoryDumps();
 
       // Update node data with output values
       const updatedNodes = graph.nodes.map((node) => {
@@ -60,6 +61,12 @@ export function useCircuit() {
         }
         if (node.data.moduleName === "BYTEIN") {
           return { ...node, data: { ...node.data, value: 0 } };
+        }
+        if (node.data.moduleName.startsWith("RAM")) {
+          const dump = memoryDumps.get(node.id);
+          if (dump) {
+            return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
+          }
         }
         return node;
       });
@@ -81,6 +88,7 @@ export function useCircuit() {
           try {
             const outputs = vmRef.current.run(next);
             setOutputSignals(outputs);
+            const memoryDumps = vmRef.current.getMemoryDumps();
 
             setNodes((prevNodes) =>
               prevNodes.map((node) => {
@@ -108,6 +116,12 @@ export function useCircuit() {
                     data: { ...node.data, value: next.get(node.id) ?? 0 },
                   };
                 }
+                if (node.data.moduleName.startsWith("RAM")) {
+                  const dump = memoryDumps.get(node.id);
+                  if (dump) {
+                    return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
+                  }
+                }
                 return node;
               }),
             );
@@ -127,6 +141,7 @@ export function useCircuit() {
       inputs: Map<string, boolean | number>,
       outputs: Map<string, boolean | number>,
       allSignals: Map<string, boolean>,
+      memoryDumps?: Map<string, Uint8Array>,
     ) => {
       setNodes((prevNodes) =>
         prevNodes.map((node) => {
@@ -158,6 +173,12 @@ export function useCircuit() {
             const q = allSignals.get(`${node.id}.q`);
             if (q !== undefined) {
               return { ...node, data: { ...node.data, value: q } };
+            }
+          }
+          if (node.data.moduleName.startsWith("RAM") && memoryDumps) {
+            const dump = memoryDumps.get(node.id);
+            if (dump) {
+              return { ...node, data: { ...node.data, memoryDump: Array.from(dump) } };
             }
           }
           return node;

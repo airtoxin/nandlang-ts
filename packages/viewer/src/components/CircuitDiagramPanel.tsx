@@ -19,6 +19,7 @@ import { ByteoutNode } from "./nodes/ByteoutNode";
 import { NandNode } from "./nodes/NandNode";
 import { FlipflopNode } from "./nodes/FlipflopNode";
 import { ModuleNode } from "./nodes/ModuleNode";
+import { RamNode } from "./nodes/RamNode";
 import type { NodeData } from "../lib/astToGraph";
 
 const nodeTypes: NodeTypes = {
@@ -29,6 +30,7 @@ const nodeTypes: NodeTypes = {
   nandNode: NandNode,
   flipflopNode: FlipflopNode,
   moduleNode: ModuleNode,
+  ramNode: RamNode,
 };
 
 type Props = {

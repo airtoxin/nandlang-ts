@@ -14,6 +14,10 @@ const BUILTIN_PORTS: Record<string, PortInfo> = {
   BYTEMERGE: { inputs: ["i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7"], outputs: [], byteInputs: [], byteOutputs: ["byte"] },
   FLIPFLOP: { inputs: ["s", "r"], outputs: ["q"], byteInputs: [], byteOutputs: [] },
   COUNTER: { inputs: ["reset", "inc"], outputs: [], byteInputs: ["load"], byteOutputs: ["count"] },
+  RAM2: { inputs: ["a0", "we"], outputs: [], byteInputs: ["data"], byteOutputs: ["out"] },
+  RAM4: { inputs: ["a0", "a1", "we"], outputs: [], byteInputs: ["data"], byteOutputs: ["out"] },
+  RAM8: { inputs: ["a0", "a1", "a2", "we"], outputs: [], byteInputs: ["data"], byteOutputs: ["out"] },
+  RAM16: { inputs: ["a0", "a1", "a2", "a3", "we"], outputs: [], byteInputs: ["data"], byteOutputs: ["out"] },
 };
 
 function resolveModulePorts(
@@ -66,6 +70,7 @@ export type NodeData = {
   byteInputs: string[];
   byteOutputs: string[];
   value?: boolean | number;
+  memoryDump?: number[];
 };
 
 export function astToGraph(ast: Program): {
@@ -107,6 +112,7 @@ export function astToGraph(ast: Program): {
     else if (st.moduleName === "BYTEOUT") nodeType = "byteoutNode";
     else if (st.moduleName === "NAND") nodeType = "nandNode";
     else if (st.moduleName === "FLIPFLOP") nodeType = "flipflopNode";
+    else if (st.moduleName.startsWith("RAM")) nodeType = "ramNode";
     else nodeType = "moduleNode";
 
     nodes.push({
