@@ -6,7 +6,6 @@ import {
   BYTEADD,
   BYTEREG,
   DEC,
-  DECODER_3BIT,
   DLATCH,
   ENC,
   NOR,
@@ -1045,9 +1044,9 @@ test("COUNTER", () => {
   expect(run(false, 0, false)).toEqual([["count", 0]]);
 });
 
-test("DECODER_3BIT", () => {
+test("DEC (decoder)", () => {
   const runner = getRunner(`
-    ${DECODER_3BIT}
+    ${DEC}
     VAR x BITIN
     VAR y BITIN
     VAR z BITIN
@@ -1058,8 +1057,8 @@ test("DECODER_3BIT", () => {
     VAR o4 BITOUT
     VAR o5 BITOUT
     VAR o6 BITOUT
-    VAR o7 BITOUT    
-    VAR dec DECODER_3BIT
+    VAR o7 BITOUT
+    VAR dec DEC
     WIRE x _ TO dec i0
     WIRE y _ TO dec i1
     WIRE z _ TO dec i2
@@ -1122,9 +1121,9 @@ test("DECODER_3BIT", () => {
   ]);
   expect(
     runner([
-      ["x", false],
-      ["y", false],
-      ["z", true],
+      ["x", true],
+      ["y", true],
+      ["z", false],
     ]),
   ).toEqual([
     ["o0", false],
@@ -1138,9 +1137,9 @@ test("DECODER_3BIT", () => {
   ]);
   expect(
     runner([
-      ["x", true],
-      ["y", true],
-      ["z", false],
+      ["x", false],
+      ["y", false],
+      ["z", true],
     ]),
   ).toEqual([
     ["o0", false],

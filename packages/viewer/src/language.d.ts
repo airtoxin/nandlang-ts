@@ -61,7 +61,6 @@ declare module "@nandlang-ts/language/code-fragments" {
   export const REG: string;
   export const BYTEREG: string;
   export const BYTEADD: string;
-  export const DECODER_3BIT: string;
   export const MUX: string;
   export const DMUX: string;
 }
