@@ -58,12 +58,10 @@
 
 .bytein-node {
   border-color: #4a9eff;
-  min-height: 180px;
 }
 
 .byteout-node {
   border-color: #ff6b6b;
-  min-height: 180px;
 }
 
 .byte-value-display {
